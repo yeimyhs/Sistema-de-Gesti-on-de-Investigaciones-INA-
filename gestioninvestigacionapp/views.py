@@ -224,9 +224,15 @@ class UserViewSet(ModelViewSet):
     queryset = CustomUser.objects.order_by('pk')
     serializer_class = UserSerializer
     filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend]
-    filterset_fields = ['id', 'username', 'email', 'first_name', 'last_name', 'is_active', 'is_staff']
-    search_fields = ['username', 'email', 'first_name', 'last_name']
-
+    filterset_fields = [
+        'id', 'nombres', 'apellidos', 'telefono', 'activo', 
+        'instituto', 'pais', 'ciudad', 'email', 'email_verified_at'
+    ]
+    
+    search_fields = [
+        'nombres', 'apellidos', 'telefono', 
+        'instituto', 'pais', 'ciudad', 'email'
+    ]
 class ActividadcronogramaViewSet(ModelViewSet):
     queryset = Actividadcronograma.objects.order_by('pk')
     serializer_class = ActividadcronogramaSerializer

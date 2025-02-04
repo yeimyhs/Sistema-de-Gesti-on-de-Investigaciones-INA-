@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'knox',
     'drf_yasg',
     'corsheaders',
+    'django_filters',
     
     'gestioninvestigacionapp'
 ]
@@ -108,7 +109,12 @@ REST_FRAMEWORK = {
     'EXCEPTION_HANDLER': 'rest_framework.views.exception_handler',
     'NON_ FIELD_ERRORS _KEY': 'error',
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
-    'PAGE_SIZE': 10
+    'PAGE_SIZE': 10,
+    'DEFAULT_FILTER_BACKENDS': [
+        'django_filters.rest_framework.DjangoFilterBackend',
+        'rest_framework.filters.SearchFilter',
+        'rest_framework.filters.OrderingFilter',
+    ],
     
 }
 DATETIME_FORMAT = 'Y-m-d H:i:s' 
