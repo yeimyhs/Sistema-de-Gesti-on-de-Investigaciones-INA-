@@ -93,12 +93,12 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'gestioninvestigacion',
-        'USER': 'postgres',
-        #'USER':'streaminguser',
+        #'USER': 'postgres',
+        'USER':'streaminguser',
         'PASSWORD': 'yeimyhs',
         'HOST': 'localhost',
-        'PORT': '5433',
-        #'PORT': '5432',
+        #'PORT': '5433',
+        'PORT': '5432',
     }
 }
 
