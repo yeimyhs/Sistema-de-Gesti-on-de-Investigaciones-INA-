@@ -3,7 +3,19 @@ from gestioninvestigacionapp import views
 
 from django.conf import settings
 from django.conf.urls.static import static
+
+from django.urls import path,include, re_path
+from knox import views as knox_views
+
+
 router = SimpleRouter()
+urlpatterns = [
+    path('login/', views.LoginView.as_view(), name='knox_login'),
+    path('register/', views.RegisterAPI.as_view(), name='register'),
+    path('logout/', knox_views.LogoutView.as_view(), name='knox_logout'),
+    path('logoutall/', knox_views.LogoutAllView.as_view(), name='knox_logoutall'),
+    
+]
 
 router.register(r'actividad', views.ActividadViewSet, 'Actividad')
 router.register(r'archivo', views.ArchivoViewSet, 'Archivo')
@@ -27,12 +39,11 @@ router.register(r'rubrica', views.RubricaViewSet, 'Rubrica')
 router.register(r'user', views.UserViewSet, 'User')
 router.register(r'actividadcronograma', views.ActividadcronogramaViewSet, 'Actividadcronograma')
 router.register(r'actividadtecnica', views.ActividadtecnicaViewSet, 'Actividadtecnica')
-router.register(r'postulacion', views.PostulacionViewSet, 'Postulacion')
 router.register(r'postulacionpropuesta', views.PostulacionPropuestaViewSet, 'PostulacionPropuesta')
 router.register(r'usercurso', views.UserCursoViewSet, 'UserCurso')
 router.register(r'usuariodesafio', views.UsuarioDesafioViewSet, 'UsuarioDesafio')
 
-urlpatterns = router.urls
+urlpatterns = urlpatterns +  router.urls
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 

@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     
     'gestioninvestigacionapp'
 ]
+AUTH_USER_MODEL = 'gestioninvestigacionapp.CustomUser'
 
 
 CORS_ALLOW_ALL_ORIGINS = True
@@ -53,6 +54,7 @@ MIDDLEWARE = [
     
     "whitenoise.middleware.WhiteNoiseMiddleware",
     'corsheaders.middleware.CorsMiddleware',
+    
     
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -99,6 +101,20 @@ DATABASES = {
         #'PORT': '5432',
     }
 }
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': ('rest_framework.authentication.BasicAuthentication' ,
+                                       'knox.auth.TokenAuthentication',),
+    'EXCEPTION_HANDLER': 'rest_framework.views.exception_handler',
+    'NON_ FIELD_ERRORS _KEY': 'error',
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
+    'PAGE_SIZE': 10
+    
+}
+DATETIME_FORMAT = 'Y-m-d H:i:s' 
+
+
+
 CORS_ALLOW_METHODS = [
     "GET",
     "POST",

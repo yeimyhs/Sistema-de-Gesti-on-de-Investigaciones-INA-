@@ -1,7 +1,138 @@
 from rest_framework.serializers import ModelSerializer
-from gestioninvestigacionapp.models import Actividad, Archivo, ArchivoActividades, ArchivoPostulaciones, Componente, Convocatoria, Curso, Departamento, Desafio, Entregable, Evaluacion, Notificciones, Plantesis, Postulante, Presupuesto, Reporte, Retroalimentacion, Retroalimentacionacttecnica, Rubrica, User, Actividadcronograma, Actividadtecnica, Postulacion, PostulacionPropuesta, UserCurso, UsuarioDesafio
+from gestioninvestigacionapp.models import Actividad, Archivo, ArchivoActividades, ArchivoPostulaciones, Componente, Convocatoria, Curso, Departamento, Desafio, Entregable, Evaluacion, Notificciones, Plantesis, Postulante, Presupuesto, Reporte, Retroalimentacion, Retroalimentacionacttecnica, Rubrica, Actividadcronograma, Actividadtecnica, PostulacionPropuesta, UserCurso, UsuarioDesafio
 
+from .models import CustomUser
+from rest_framework import serializers
+from django.contrib.auth import authenticate
+from django.contrib.auth import get_user_model
 
+User = get_user_model()
+
+class CustomUserSerializer(ModelSerializer):
+    class Meta:
+        #depth = 1
+        model = CustomUser
+        fields = ['activo',
+            'id',
+            "nombres",
+            "apellidos",
+            "fechacreacion",
+            "telefono",
+            "fotoperfil",
+            "activo",
+            "instituto",
+            "pais",
+            "ciudad",
+            "email",
+            
+            'email_verified_at',
+            'remember_token',
+            'is_staff',
+        ]
+
+class RegisterSerializer(ModelSerializer):
+    class Meta:
+        #depth = 1
+        model = CustomUser
+        fields = [
+            'password',
+             
+            "nombres",
+            "apellidos",
+            "fechacreacion",
+            "telefono",
+            "fotoperfil",
+            "activo",
+            "instituto",
+            "pais",
+            "ciudad",
+            "email",
+        ]
+        extra_kwargs = {'password': {'write_only': True}}
+
+class CustomAuthTokenSerializer(serializers.Serializer):
+    email = serializers.CharField(label="Email del usuario")
+    password = serializers.CharField(label="Contraseña", style={"input_type": "password"})
+
+    def validate(self, attrs):
+        email = attrs.get("email")
+        password = attrs.get("password")
+
+        # Validar si faltan campos
+        if not email and not password:
+            raise serializers.ValidationError(
+                {
+                    "error": {
+                        "code": "missing_fields",
+                        "message": "El nombre de usuario y la contraseña son obligatorios."
+                    }
+                },
+                code="authorization",
+            )
+        elif not email:
+            raise serializers.ValidationError(
+                {
+                    "error": {
+                        "code": "missing_username",
+                        "message": "El nombre de usuario es obligatorio."
+                    }
+                },
+                code="authorization",
+            )
+        elif not password:
+            raise serializers.ValidationError(
+                {
+                    "error": {
+                        "code": "missing_password",
+                        "message": "La contraseña es obligatoria."
+                    }
+                },
+                code="authorization",
+            )
+
+        # Autenticar al usuario
+        user = authenticate(email=email, password=password)
+
+        # Validar credenciales inválidas
+        if not user:
+            raise serializers.ValidationError(
+                {
+                    "error": {
+                        "code": "invalid_credentials",
+                        "message": "Las credenciales proporcionadas no son válidas. Por favor, intente de nuevo."
+                    }
+                },
+                code="authorization",
+            )
+
+        # Verificar si la cuenta está deshabilitada
+        if not user.activo:
+            raise serializers.ValidationError(
+                {
+                    "error": {
+                        "code": "account_disabled",
+                        "message": "Esta cuenta está deshabilitada. Contacte con el administrador."
+                    }
+                },
+                code="authorization",
+            )
+
+        # Validar si el usuario está inactivo
+        if not user.is_active:
+            raise serializers.ValidationError(
+                {
+                    "error": {
+                        "code": "account_inactive",
+                        "message": "Esta cuenta está inactiva. Por favor, contacte con el administrador."
+                    }
+                },
+                code="authorization",
+            )
+
+        # Si todo es válido, se retorna el usuario
+        attrs["user"] = user
+        return attrs
+    
 class ActividadSerializer(ModelSerializer):
 
     class Meta:
@@ -138,7 +269,7 @@ class RubricaSerializer(ModelSerializer):
 class UserSerializer(ModelSerializer):
 
     class Meta:
-        model = User
+        model = CustomUser
         fields = '__all__'
 
 
@@ -155,12 +286,6 @@ class ActividadtecnicaSerializer(ModelSerializer):
         model = Actividadtecnica
         fields = '__all__'
 
-
-class PostulacionSerializer(ModelSerializer):
-
-    class Meta:
-        model = Postulacion
-        fields = '__all__'
 
 
 class PostulacionPropuestaSerializer(ModelSerializer):
