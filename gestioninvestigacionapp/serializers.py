@@ -1,5 +1,6 @@
 from rest_framework.serializers import ModelSerializer
 from gestioninvestigacionapp.models import Actividad, Archivo, ArchivoActividades, ArchivoPostulaciones, Componente, Convocatoria, Curso, Departamento, Desafio, Entregable, Evaluacion, Notificciones, Plantesis, Postulante, Presupuesto, Reporte, Retroalimentacion, Retroalimentacionacttecnica, Rubrica, Actividadcronograma, Actividadtecnica, PostulacionPropuesta, UserCurso, UsuarioDesafio
+from .models import *
 
 from .models import CustomUser
 from rest_framework import serializers
@@ -306,4 +307,11 @@ class UsuarioDesafioSerializer(ModelSerializer):
 
     class Meta:
         model = UsuarioDesafio
+        fields = '__all__'
+
+
+class EstadoSerializer(ModelSerializer):
+
+    class Meta:
+        model = Estado
         fields = '__all__'

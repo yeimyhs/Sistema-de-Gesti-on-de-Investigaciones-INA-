@@ -267,3 +267,11 @@ class UsuarioDesafioViewSet(ModelViewSet):
     filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend]
     filterset_fields = ['iduser', 'idproyecto', 'iduser_id__nombres', 'idproyecto__titulo']
     search_fields = ['iduser__nombres', 'idproyecto__titulo']
+    
+    
+class EstadoViewSet(ModelViewSet):
+    queryset = Estado.objects.order_by('pk')
+    serializer_class = EstadoSerializer
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend]
+    filterset_fields = ['valor', 'clave', 'descripcion', 'identificador_tabla', 'nombre_tabla']
+    search_fields = ['valor', 'clave', 'descripcion', 'identificador_tabla', 'nombre_tabla']

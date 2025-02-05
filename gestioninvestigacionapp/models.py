@@ -11,6 +11,27 @@ from django.core.exceptions import ValidationError
 from django.conf import settings
 
 from django.contrib.auth.models import AbstractUser, BaseUserManager
+
+
+
+class Estado(models.Model):
+    nombre_tabla = models.CharField(max_length=255, help_text="Nombre de la tabla a la que pertenece este estado")
+    identificador_tabla = models.CharField(max_length=255, help_text="Identificador único del registro dentro de la tabla")
+    descripcion = models.CharField(max_length=255)
+    clave = models.CharField(max_length=255, help_text="Clave del estado")
+    valor = models.CharField(help_text="Valor del estado")
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_actualizacion = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ('nombre_tabla', 'identificador_tabla', 'clave')
+        indexes = [
+            models.Index(fields=['nombre_tabla', 'identificador_tabla']),
+        ]
+
+    def __str__(self):
+        return f"{self.nombre_tabla} ({self.identificador_tabla}): {self.clave} = {self.valor}"
+
 class CustomUserManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields):
         if not email:
