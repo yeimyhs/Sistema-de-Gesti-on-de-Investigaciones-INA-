@@ -186,15 +186,15 @@ class PresupuestoViewSet(ModelViewSet):
     queryset = Presupuesto.objects.order_by('pk')
     serializer_class = PresupuestoSerializer
     filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend]
-    filterset_fields = ['idpresupuesto', 'idproyecto', 'idproyecto__titulo']
-    search_fields = ['partida', 'idproyecto__titulo']
+    filterset_fields = ['idpresupuesto', 'idproyecto', 'idproyecto__titulo','monto','partida']
+    search_fields = ['monto','partida', 'idproyecto__titulo']
 
 
 class ReporteViewSet(ModelViewSet):
     queryset = Reporte.objects.order_by('pk')
     serializer_class = ReporteSerializer
     filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend]
-    ilterset_fields = ['idreporte', 'idactividad', 'idactividad__titulo']
+    filterset_fields = ['idreporte', 'evaluacionnota', 'idactividad','idactividad__titulo']
     search_fields = ['idactividad__titulo']
 
 
@@ -202,32 +202,29 @@ class RetroalimentacionViewSet(ModelViewSet):
     queryset = Retroalimentacion.objects.order_by('pk')
     serializer_class = RetroalimentacionSerializer
     filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend]
-    filterset_fields = ['idretroalimentacion', 'idreporte', 'idreporte__idactividad__titulo']
-    search_fields = ['comentario', 'idreporte__idactividad__titulo']
+    filterset_fields = ['idreporte', 'comentario']
+    search_fields = ['comentario']
 
 
 class RetroalimentacionacttecnicaViewSet(ModelViewSet):
     queryset = Retroalimentacionacttecnica.objects.order_by('pk')
     serializer_class = RetroalimentacionacttecnicaSerializer
     filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend]
-    filterset_fields = ['idactividadtecnica', 'fecha', 'comentario', 'idactividadtecnica__titulo']
-    search_fields = ['comentario', 'idactividadtecnica__titulo']
+    filterset_fields = ['identregable', 'comentario']
+    search_fields = ['comentario']
 
 class RubricaViewSet(ModelViewSet):
     queryset = Rubrica.objects.order_by('pk')
     serializer_class = RubricaSerializer
     filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend]
-    filterset_fields = ['idproyecto', 'idproyecto__nombre']
-    search_fields = ['idproyecto__nombre']
+    filterset_fields = ['idproyecto', 'idproyecto__titulo']
+    search_fields = ['idproyecto__titulo']
 
 class UserViewSet(ModelViewSet):
     queryset = CustomUser.objects.order_by('pk')
     serializer_class = UserSerializer
     filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend]
-    filterset_fields = [
-        'id', 'nombres', 'apellidos', 'telefono', 'activo', 
-        'instituto', 'pais', 'ciudad', 'email', 'email_verified_at'
-    ]
+    filterset_fields = [    'id', 'nombres', 'apellidos', 'telefono', 'activo',    'instituto', 'pais', 'ciudad', 'email', 'email_verified_at']
     
     search_fields = [
         'nombres', 'apellidos', 'telefono', 
@@ -244,8 +241,8 @@ class ActividadtecnicaViewSet(ModelViewSet):
     queryset = Actividadtecnica.objects.order_by('pk')
     serializer_class = ActividadtecnicaSerializer
     filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend]
-    filterset_fields = ['idcomponente', 'estado', 'titulo', 'idcomponente__nombre']
-    search_fields = ['titulo', 'idcomponente__nombre']
+    filterset_fields = ['idcomponente', 'estado', 'titulo', 'idcomponente__numero']
+    search_fields = ['titulo', 'idcomponente__numero']
 
 
 
@@ -254,19 +251,19 @@ class PostulacionPropuestaViewSet(ModelViewSet):
     queryset = PostulacionPropuesta.objects.order_by('pk')
     serializer_class = PostulacionPropuestaSerializer
     filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend]
-    filterset_fields = ['idproyecto', 'titulo', 'idproyecto__nombre']
-    search_fields = ['titulo', 'idproyecto__nombre']
+    filterset_fields = ['idproyecto', 'titulo', 'idproyecto__titulo']
+    search_fields = ['titulo', 'idproyecto__titulo']
 
 class UserCursoViewSet(ModelViewSet):
     queryset = UserCurso.objects.order_by('pk')
     serializer_class = UserCursoSerializer
     filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend]
-    filterset_fields = ['iduser', 'idcurso', 'iduser__username', 'idcurso__nombre']
-    search_fields = ['iduser__username', 'idcurso__nombre']
+    filterset_fields = ['iduser', 'idcurso', 'iduser__nombres', 'idcurso__titulo']
+    search_fields = ['iduser__nombres', 'idcurso__titulo']
 
 class UsuarioDesafioViewSet(ModelViewSet):
     queryset = UsuarioDesafio.objects.order_by('pk')
     serializer_class = UsuarioDesafioSerializer
     filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend]
-    filterset_fields = ['iduser', 'idproyecto', 'iduser__username', 'idproyecto__nombre']
-    search_fields = ['iduser__username', 'idproyecto__nombre']
+    filterset_fields = ['iduser', 'idproyecto', 'iduser_id__nombres', 'idproyecto__titulo']
+    search_fields = ['iduser__nombres', 'idproyecto__titulo']
