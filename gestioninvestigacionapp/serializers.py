@@ -9,6 +9,7 @@ from django.contrib.auth import get_user_model
 
 User = get_user_model()
 
+
 class CustomUserSerializer(ModelSerializer):
     class Meta:
         #depth = 1
@@ -30,14 +31,15 @@ class CustomUserSerializer(ModelSerializer):
             'remember_token',
             'is_staff',
         ]
+from rest_framework.serializers import ModelSerializer
+from django.contrib.auth.hashers import make_password
+from .models import CustomUser  # Asegúrate de importar tu modelo de usuario
 
 class RegisterSerializer(ModelSerializer):
     class Meta:
-        #depth = 1
         model = CustomUser
         fields = [
             'password',
-             
             "nombres",
             "apellidos",
             "fechacreacion",
@@ -50,6 +52,11 @@ class RegisterSerializer(ModelSerializer):
             "email",
         ]
         extra_kwargs = {'password': {'write_only': True}}
+
+    def create(self, validated_data):
+        """ Sobrescribe la creación del usuario para encriptar la contraseña """
+        validated_data['password'] = make_password(validated_data['password'])  # Encripta la contraseña
+        return super().create(validated_data)
 
 class CustomAuthTokenSerializer(serializers.Serializer):
     email = serializers.CharField(label="Email del usuario")
@@ -92,43 +99,45 @@ class CustomAuthTokenSerializer(serializers.Serializer):
             )
 
         # Autenticar al usuario
-        user = authenticate(email=email, password=password)
+        #user = authenticate(email=email, password=password)
+        user = User.objects.filter(email=email).first()
 
-        # Validar credenciales inválidas
-        if not user:
-            raise serializers.ValidationError(
-                {
-                    "error": {
-                        "code": "invalid_credentials",
-                        "message": "Las credenciales proporcionadas no son válidas. Por favor, intente de nuevo."
-                    }
-                },
-                code="authorization",
-            )
+        if user and user.check_password(password):
+            # Validar credenciales inválidas
+            if not user:
+                raise serializers.ValidationError(
+                    {
+                        "error": {
+                            "code": "invalid_credentials",
+                            "message": "Las credenciales proporcionadas no son válidas. Por favor, intente de nuevo."
+                        }
+                    },
+                    code="authorization",
+                )
 
-        # Verificar si la cuenta está deshabilitada
-        if not user.activo:
-            raise serializers.ValidationError(
-                {
-                    "error": {
-                        "code": "account_disabled",
-                        "message": "Esta cuenta está deshabilitada. Contacte con el administrador."
-                    }
-                },
-                code="authorization",
-            )
+            # Verificar si la cuenta está deshabilitada
+            if not user.activo:
+                raise serializers.ValidationError(
+                    {
+                        "error": {
+                            "code": "account_disabled",
+                            "message": "Esta cuenta está deshabilitada. Contacte con el administrador."
+                        }
+                    },
+                    code="authorization",
+                )
 
-        # Validar si el usuario está inactivo
-        if not user.is_active:
-            raise serializers.ValidationError(
-                {
-                    "error": {
-                        "code": "account_inactive",
-                        "message": "Esta cuenta está inactiva. Por favor, contacte con el administrador."
-                    }
-                },
-                code="authorization",
-            )
+            # Validar si el usuario está inactivo
+            if not user.is_active:
+                raise serializers.ValidationError(
+                    {
+                        "error": {
+                            "code": "account_inactive",
+                            "message": "Esta cuenta está inactiva. Por favor, contacte con el administrador."
+                        }
+                    },
+                    code="authorization",
+                )
 
         # Si todo es válido, se retorna el usuario
         attrs["user"] = user
@@ -267,11 +276,6 @@ class RubricaSerializer(ModelSerializer):
         fields = '__all__'
 
 
-class UserSerializer(ModelSerializer):
-
-    class Meta:
-        model = CustomUser
-        fields = '__all__'
 
 
 class ActividadcronogramaSerializer(ModelSerializer):

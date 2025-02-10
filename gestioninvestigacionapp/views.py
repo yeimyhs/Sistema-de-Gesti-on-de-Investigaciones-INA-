@@ -1,5 +1,5 @@
 from rest_framework.viewsets import ModelViewSet
-from gestioninvestigacionapp.serializers import ActividadSerializer, ArchivoSerializer, ArchivoActividadesSerializer, ArchivoPostulacionesSerializer, ComponenteSerializer, ConvocatoriaSerializer, CursoSerializer, DepartamentoSerializer, DesafioSerializer, EntregableSerializer, EvaluacionSerializer, NotificcionesSerializer, PlantesisSerializer, PostulanteSerializer, PresupuestoSerializer, ReporteSerializer, RetroalimentacionSerializer, RetroalimentacionacttecnicaSerializer, RubricaSerializer, UserSerializer, ActividadcronogramaSerializer, ActividadtecnicaSerializer, PostulacionPropuestaSerializer, UserCursoSerializer, UsuarioDesafioSerializer
+from gestioninvestigacionapp.serializers import ActividadSerializer, ArchivoSerializer, ArchivoActividadesSerializer, ArchivoPostulacionesSerializer, ComponenteSerializer, ConvocatoriaSerializer, CursoSerializer, DepartamentoSerializer, DesafioSerializer, EntregableSerializer, EvaluacionSerializer, NotificcionesSerializer, PlantesisSerializer, PostulanteSerializer, PresupuestoSerializer, ReporteSerializer, RetroalimentacionSerializer, RetroalimentacionacttecnicaSerializer, RubricaSerializer, ActividadcronogramaSerializer, ActividadtecnicaSerializer, PostulacionPropuestaSerializer, UserCursoSerializer, UsuarioDesafioSerializer
 from gestioninvestigacionapp.serializers import *
 from gestioninvestigacionapp.models import Actividad, Archivo, ArchivoActividades, ArchivoPostulaciones, Componente, Convocatoria, Curso, Departamento, Desafio, Entregable, Evaluacion, Notificciones, Plantesis, Postulante, Presupuesto, Reporte, Retroalimentacion, Retroalimentacionacttecnica, Rubrica, Actividadcronograma, Actividadtecnica, PostulacionPropuesta, UserCurso, UsuarioDesafio
 from .models import CustomUser
@@ -56,11 +56,17 @@ class LoginView(KnoxLoginView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        # Recuperar el usuario autenticado desde el serializer
+        # 🔥 Obtener el usuario autenticado desde el serializer
         user = serializer.validated_data["user"]
 
-        # Iniciar sesión
+        # 🔥 Iniciar sesión manualmente (importante para Knox)
         login(request, user)
+
+        # 🔥 Generar el token con Knox (esto es lo que fallaba antes)
+        response = super(LoginView, self).post(request, format=None)
+
+        # 🔥 Serializar información del usuario
+        user_serializer = CustomUserSerializer(user)
 
         # Obtener la respuesta estándar de Knox
         response = super(LoginView, self).post(request, format=None)
@@ -222,7 +228,7 @@ class RubricaViewSet(ModelViewSet):
 
 class UserViewSet(ModelViewSet):
     queryset = CustomUser.objects.order_by('pk')
-    serializer_class = UserSerializer
+    serializer_class = CustomUserSerializer
     filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend]
     filterset_fields = [    'id', 'nombres', 'apellidos', 'telefono', 'activo',    'instituto', 'pais', 'ciudad', 'email', 'email_verified_at']
     

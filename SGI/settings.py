@@ -38,8 +38,9 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles', 
     
-    'rest_framework',
     'knox',
+    
+    'rest_framework',
     'drf_yasg',
     'corsheaders',
     'django_filters',
@@ -53,9 +54,9 @@ CORS_ALLOW_ALL_ORIGINS = True
 
 MIDDLEWARE = [
     
-    "whitenoise.middleware.WhiteNoiseMiddleware",
     'corsheaders.middleware.CorsMiddleware',
     
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -104,7 +105,7 @@ DATABASES = {
 }
 
 REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': ('rest_framework.authentication.BasicAuthentication' ,
+    'DEFAULT_AUTHENTICATION_CLASSES': (
                                        'knox.auth.TokenAuthentication',),
     'EXCEPTION_HANDLER': 'rest_framework.views.exception_handler',
     'NON_ FIELD_ERRORS _KEY': 'error',
@@ -117,6 +118,16 @@ REST_FRAMEWORK = {
     ],
     
 }
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',  # Usa el backend de autenticación de Django
+]
+REST_KNOX = {
+    'USER_SERIALIZER': 'gestioninvestigacionapp.serializers.CustomUserSerializer',
+}
+
+
+
+
 DATETIME_FORMAT = 'Y-m-d H:i:s' 
 
 
