@@ -119,7 +119,8 @@ class Archivo(models.Model):
     fechacreacion = models.DateTimeField(auto_now_add=True)
     fechacreacion = models.DateTimeField(auto_now_add=True)
     nombre = models.CharField(max_length=20)
-    ubicacion = models.TextField()
+    ubicacion = models.FileField(upload_to='archivosConvocatoriaDesafio/', blank=True, null=True)
+
     activo = models.BooleanField()
     idarchivo = models.BigAutoField(primary_key=True)
     idconvocatoria = models.ForeignKey('Convocatoria', models.DO_NOTHING, db_column='idconvocatoria', blank=True, null=True)
@@ -133,7 +134,8 @@ class ArchivoActividades(models.Model):
     fechacreacion = models.DateTimeField(auto_now_add=True)
     fechacreacion = models.DateTimeField(auto_now_add=True)
     nombre = models.CharField(max_length=20)
-    ubicacion = models.TextField()
+    ubicacion = models.FileField(upload_to='archivosActividad/', blank=True, null=True)
+
     activo = models.BooleanField()
     idarchivo = models.BigAutoField(primary_key=True)
     idactividad = models.ForeignKey(Actividad, models.DO_NOTHING, db_column='idactividad', blank=True, null=True)
@@ -146,7 +148,8 @@ class ArchivoPostulaciones(models.Model):
     fechacreacion = models.DateTimeField(auto_now_add=True)
     fechacreacion = models.DateTimeField(auto_now_add=True)
     nombre = models.CharField(max_length=20)
-    ubicacion = models.TextField()
+    ubicacion = models.FileField(upload_to='archivosPostulacion/', blank=True, null=True)
+   
     activo = models.BooleanField()
     idarchivo = models.BigAutoField(primary_key=True)
     idconvocatoria = models.BigIntegerField(blank=True, null=True)
@@ -178,7 +181,7 @@ class Convocatoria(models.Model):
     objetivogeneral = models.TextField(blank=True, null=True)
     prioridadesconvocatoria = models.TextField(blank=True, null=True)
     publicoobjetivo = models.TextField(blank=True, null=True)
-    imagen = models.BigIntegerField(blank=True, null=True)
+    imagen = models.ImageField(upload_to='convocatoriaimagen/', blank=True, null=True)
     idactividad = models.ForeignKey('Actividadcronograma', models.DO_NOTHING, db_column='idactividad', blank=True, null=True)
 
     class Meta:
@@ -232,7 +235,8 @@ class Desafio(models.Model):
     personalequiposcriticos = models.TextField(blank=True, null=True)
     razon = models.TextField(blank=True, null=True)
     requerimientominimos = models.TextField(blank=True, null=True)
-    imagen = models.TextField(blank=True, null=True)
+    imagen = models.ImageField(upload_to='desafioimagen/', blank=True, null=True)
+ 
     areasinvestigacion = models.TextField(blank=True, null=True)
 
     class Meta:
