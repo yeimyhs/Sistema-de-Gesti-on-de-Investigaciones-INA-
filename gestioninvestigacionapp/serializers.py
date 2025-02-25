@@ -22,14 +22,13 @@ class CustomUserSerializer(ModelSerializer):
     class Meta:
         #depth = 1
         model = CustomUser
-        fields = ['activo',
+        fields = ['eliminado',
             'id',
             "nombres",
             "apellidos",
             "fechacreacion",
             "telefono",
             "fotoperfil",
-            "activo",
             "instituto",
             "pais",
             "ciudad",
@@ -56,7 +55,7 @@ class RegisterSerializer(ModelSerializer):
             "fechacreacion",
             "telefono",
             "fotoperfil",
-            "activo",
+            "eliminado",
             "instituto",
             "pais",
             "ciudad",
@@ -130,7 +129,7 @@ class CustomAuthTokenSerializer(serializers.Serializer):
                 )
 
             # Verificar si la cuenta está deshabilitada
-            if not user.activo:
+            if user.eliminado:
                 raise serializers.ValidationError(
                     {
                         "error": {
@@ -330,12 +329,6 @@ class PostulacionPropuestaSerializer(ModelSerializer):
         fields = '__all__'
 
 
-class UserCursoSerializer(ModelSerializer):
-    curso_titulo = serializers.CharField(source="idcurso.titulo", read_only=True)
-    
-    class Meta:
-        model = UserCurso
-        fields = '__all__'
 
 
 class UsuarioDesafioSerializer(ModelSerializer):

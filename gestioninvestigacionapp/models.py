@@ -93,7 +93,7 @@ class CustomUser(AbstractUser):
     apellidos = models.CharField(max_length=128, blank=True, null=True)
     telefono = models.CharField(max_length=255, blank=True, null=True)
     fotoperfil = models.ImageField(upload_to='perfilUsuarioimagen/', blank=True, null=True)
-    activo = models.BooleanField(default =1)
+    eliminado = models.BooleanField(default =1)
     
     instituto = models.CharField(max_length=128, blank=True, null=True)
     pais = models.CharField(max_length=128, blank=True, null=True)
@@ -165,7 +165,7 @@ class Actividad(models.Model):
     titulo = models.CharField(max_length=255)
     descripcion = models.TextField()
     fechaentrega = models.DateField()
-    activo = models.BooleanField()
+    eliminado = models.BooleanField(default=0)
     estado = models.SmallIntegerField()
 
     class Meta:
@@ -177,7 +177,7 @@ class Archivo(models.Model):
     nombre = models.CharField(max_length=255)
     ubicacion = models.FileField(upload_to='archivosConvocatoriaDesafio/', blank=True, null=True)
 
-    activo = models.BooleanField()
+    eliminado = models.BooleanField(default=0)
     idarchivo = models.BigAutoField(primary_key=True)
     idconvocatoria = models.ForeignKey('Convocatoria', models.DO_NOTHING, db_column='idconvocatoria', blank=True, null=True)
     idproyecto = models.ForeignKey('Desafio', models.DO_NOTHING, db_column='idproyecto', blank=True, null=True)
@@ -191,7 +191,7 @@ class ArchivoActividades(models.Model):
     nombre = models.CharField(max_length=255)
     ubicacion = models.FileField(upload_to='archivosActividad/', blank=True, null=True)
 
-    activo = models.BooleanField()
+    eliminado = models.BooleanField(default=0)
     idarchivo = models.BigAutoField(primary_key=True)
     idactividad = models.ForeignKey(Actividad, models.DO_NOTHING, db_column='idactividad', blank=True, null=True)
 
@@ -204,7 +204,7 @@ class ArchivoPostulaciones(models.Model):
     nombre = models.CharField(max_length=255)
     ubicacion = models.FileField(upload_to='archivosPostulacion/', blank=True, null=True)
    
-    activo = models.BooleanField()
+    eliminado = models.BooleanField(default=0)
     idarchivo = models.BigAutoField(primary_key=True)
     idconvocatoria = models.BigIntegerField(blank=True, null=True)
     idproyecto = models.ForeignKey('PostulacionPropuesta', models.DO_NOTHING, db_column='idproyecto', blank=True, null=True)
@@ -234,7 +234,7 @@ class Convocatoria(models.Model):
     
     titulo = models.CharField(max_length=255)
     descripcion = models.TextField()
-    activo = models.BooleanField()
+    eliminado = models.BooleanField(default=0)
     estado = models.SmallIntegerField()
     objetivogeneral = models.TextField(blank=True, null=True)
     prioridadesconvocatoria = models.TextField(blank=True, null=True)
@@ -255,7 +255,7 @@ class Curso(models.Model):
     coordinador = models.CharField(max_length=255, blank=True, null=True)
     fecharegistro = models.DateField()
     estado = models.SmallIntegerField()
-    activo = models.BooleanField()
+    eliminado = models.BooleanField(default=0)
     iddepartamento = models.ForeignKey('Departamento', models.DO_NOTHING, db_column='iddepartamento', blank=True, null=True)
 
     class Meta:
@@ -272,7 +272,7 @@ class Departamento(models.Model):
     telefono = models.CharField(max_length=255, blank=True, null=True)
     director = models.CharField(max_length=255, blank=True, null=True)
     estado = models.SmallIntegerField()
-    activo = models.BooleanField()
+    eliminado = models.BooleanField(default=0)
     
     class Meta:
         db_table = 'Departamento'
@@ -286,7 +286,7 @@ class Desafio(models.Model):
     titulo = models.CharField(max_length=255)
     descripcion = models.TextField()
     estado = models.SmallIntegerField()
-    activo = models.BooleanField()
+    eliminado = models.BooleanField(default=0)
     personalequiposcriticos = models.TextField(blank=True, null=True)
     razon = models.TextField(blank=True, null=True)
     requerimientominimos = models.TextField(blank=True, null=True)
@@ -327,7 +327,7 @@ class Notificciones(models.Model):
     idnotificacion = models.BigAutoField(primary_key=True)
     titulo = models.CharField(max_length=255)
     descripcion = models.TextField()
-    activo = models.BooleanField()
+    eliminado = models.BooleanField(default=0)
     iduser = models.ForeignKey(settings.AUTH_USER_MODEL, models.DO_NOTHING, db_column='iduser', blank=True, null=True)
 
     class Meta:
@@ -355,7 +355,7 @@ class Postulante(models.Model):
     apellidos = models.CharField(max_length=255)
     email = models.CharField(max_length=255)
     institucion = models.CharField(max_length=255, blank=True, null=True)
-    activo = models.BooleanField()
+    eliminado = models.BooleanField(default=0)
     pais = models.CharField(max_length=255, blank=True, null=True)
     ciudad = models.CharField(max_length=255, blank=True, null=True)
     fotoperfil = models.TextField(blank=True, null=True)
@@ -421,7 +421,7 @@ class Rubrica(models.Model):
 class Actividadcronograma(models.Model):
     fechacreacion = models.DateTimeField(auto_now_add=True)
     titulo = models.CharField(max_length=255)
-    activo = models.BooleanField()
+    eliminado = models.BooleanField(default=0)
     fechainicial = models.DateField(blank=True, null=True)
     fechafinal = models.DateField(blank=True, null=True)
     idactividad = models.BigAutoField(primary_key=True)
@@ -439,7 +439,7 @@ class Actividadtecnica(models.Model):
     estado = models.IntegerField()
     fechainicio = models.DateField(blank=True, null=True)
     fechafinal = models.DateField(blank=True, null=True)
-    activo = models.DateField()
+    eliminado = models.DateField()
     titulo = models.CharField(max_length=255)
 
     class Meta:

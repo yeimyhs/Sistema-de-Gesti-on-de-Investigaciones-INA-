@@ -89,28 +89,28 @@ class ActividadViewSet(ModelViewSet):
     queryset = Actividad.objects.order_by('pk')
     serializer_class = ActividadSerializer
     filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend]
-    filterset_fields = ['idactividad', 'tipo', 'fechaentrega', 'fechacreacion', 'activo', 'estado', 'idproyecto', 'idproyecto__titulo']
+    filterset_fields = ['idactividad', 'tipo', 'fechaentrega', 'fechacreacion', 'eliminado', 'estado', 'idproyecto', 'idproyecto__titulo']
     search_fields = ['titulo', 'descripcion', 'idproyecto__titulo']
     
 class ArchivoViewSet(ModelViewSet):
     queryset = Archivo.objects.order_by('pk')
     serializer_class = ArchivoSerializer
     filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend]
-    filterset_fields = ['idarchivo', 'activo', 'fechacreacion', 'idconvocatoria', 'idconvocatoria__titulo', 'idproyecto', 'idproyecto__titulo']
+    filterset_fields = ['idarchivo', 'eliminado', 'fechacreacion', 'idconvocatoria', 'idconvocatoria__titulo', 'idproyecto', 'idproyecto__titulo']
     search_fields = ['nombre', 'idconvocatoria__titulo', 'idproyecto__titulo']
     
 class ArchivoActividadesViewSet(ModelViewSet):
     queryset = ArchivoActividades.objects.order_by('pk')
     serializer_class = ArchivoActividadesSerializer
     filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend]
-    filterset_fields = ['idarchivo', 'activo', 'fechacreacion', 'idactividad', 'idactividad__titulo']
+    filterset_fields = ['idarchivo', 'eliminado', 'fechacreacion', 'idactividad', 'idactividad__titulo']
     search_fields = ['nombre', 'idactividad__titulo']
 
 class ArchivoPostulacionesViewSet(ModelViewSet):
     queryset = ArchivoPostulaciones.objects.order_by('pk')
     serializer_class = ArchivoPostulacionesSerializer
     filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend]
-    filterset_fields = ['idarchivo', 'activo', 'fechacreacion', 'idconvocatoria', 'idproyecto', 'idproyecto__titulo']
+    filterset_fields = ['idarchivo', 'eliminado', 'fechacreacion', 'idconvocatoria', 'idproyecto', 'idproyecto__titulo']
     search_fields = ['nombre', 'idproyecto__titulo']
 
 class ComponenteViewSet(ModelViewSet):
@@ -124,21 +124,21 @@ class ConvocatoriaViewSet(ModelViewSet):
     queryset = Convocatoria.objects.order_by('pk')
     serializer_class = ConvocatoriaSerializer
     filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend]
-    filterset_fields = ['idconvocatoria', 'activo', 'estado', 'fechacreacion']
+    filterset_fields = ['idconvocatoria', 'eliminado', 'estado', 'fechacreacion']
     search_fields = ['titulo', 'descripcion', 'objetivogeneral']
 
 class CursoViewSet(ModelViewSet):
     queryset = Curso.objects.order_by('pk')
     serializer_class = CursoSerializer
     filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend]
-    filterset_fields = ['idcurso', 'anioacademico', 'semestre', 'activo', 'estado', 'iddepartamento', 'iddepartamento__nombre']
+    filterset_fields = ['idcurso', 'anioacademico', 'semestre', 'eliminado', 'estado', 'iddepartamento', 'iddepartamento__nombre']
     search_fields = ['titulo', 'coordinador', 'iddepartamento__nombre']
 
 class DepartamentoViewSet(ModelViewSet):
     queryset = Departamento.objects.order_by('pk')
     serializer_class = DepartamentoSerializer
     filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend]
-    filterset_fields = ['iddepartamento', 'estado', 'activo', 'fechacreacion']
+    filterset_fields = ['iddepartamento', 'estado', 'eliminado', 'fechacreacion']
     search_fields = ['nombre', 'lugar', 'email', 'director']
 
 
@@ -146,7 +146,7 @@ class DesafioViewSet(ModelViewSet):
     queryset = Desafio.objects.order_by('pk')
     serializer_class = DesafioSerializer
     filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend]
-    filterset_fields = ['idproyecto', 'estado', 'activo', 'fechacreacion', 'idconvocatoria', 'idconvocatoria__titulo', 'idcurso', 'idcurso__titulo']
+    filterset_fields = ['idproyecto', 'estado', 'eliminado', 'fechacreacion', 'idconvocatoria', 'idconvocatoria__titulo', 'idcurso', 'idcurso__titulo']
     search_fields = ['titulo', 'descripcion', 'idconvocatoria__titulo', 'idcurso__titulo']
 
 
@@ -168,7 +168,7 @@ class NotificcionesViewSet(ModelViewSet):
     queryset = Notificciones.objects.order_by('pk')
     serializer_class = NotificcionesSerializer
     filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend]
-    filterset_fields = ['idnotificacion', 'activo', 'fechacreacion', 'iduser']
+    filterset_fields = ['idnotificacion', 'eliminado', 'fechacreacion', 'iduser']
     search_fields = ['titulo', 'descripcion']
 
 
@@ -184,7 +184,7 @@ class PostulanteViewSet(ModelViewSet):
     queryset = Postulante.objects.order_by('pk')
     serializer_class = PostulanteSerializer
     filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend]
-    filterset_fields = ['iduser', 'activo', 'fechacreacion', 'idproyecto', 'idproyecto__titulo']
+    filterset_fields = ['iduser', 'eliminado', 'fechacreacion', 'idproyecto', 'idproyecto__titulo']
     search_fields = ['nombres', 'apellidos', 'email', 'institucion', 'idproyecto__titulo']
 
 
@@ -231,7 +231,7 @@ class UserViewSet(ModelViewSet):
     queryset = CustomUser.objects.order_by('pk')
     serializer_class = CustomUserSerializer
     filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend]
-    filterset_fields = [    'id', 'nombres', 'apellidos', 'telefono', 'activo',    'instituto', 'pais', 'ciudad', 'email', 'email_verified_at']
+    filterset_fields = [    'id', 'nombres', 'apellidos', 'telefono', 'eliminado',    'instituto', 'pais', 'ciudad', 'email', 'email_verified_at']
     
     search_fields = [
         'nombres', 'apellidos', 'telefono', 
@@ -241,7 +241,7 @@ class ActividadcronogramaViewSet(ModelViewSet):
     queryset = Actividadcronograma.objects.order_by('pk')
     serializer_class = ActividadcronogramaSerializer
     filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend]
-    filterset_fields = ['titulo', 'activo', 'fechacreacion']
+    filterset_fields = ['titulo', 'eliminado', 'fechacreacion']
     search_fields = ['titulo']
 
 class ActividadtecnicaViewSet(ModelViewSet):
