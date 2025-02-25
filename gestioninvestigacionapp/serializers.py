@@ -375,3 +375,8 @@ class ubigeoDistritoSerializer(ModelSerializer):
         fields = '__all__'
 
 
+
+class RolSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Rol
+        fields = '__all__'  # Incluir todos los campos del modelo

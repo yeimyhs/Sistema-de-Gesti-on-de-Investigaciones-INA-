@@ -308,3 +308,15 @@ class ubigeoDistritoViewSet(ModelViewSet):
     filterset_fields = ['idciudad', 'nombre', 'idprovincia']
     search_fields = ['nombre']
 
+
+class RolViewSet(ModelViewSet):
+    """
+    API para gestionar los roles en el sistema.
+    """
+    queryset = Rol.objects.all()
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend]
+    serializer_class = RolSerializer
+    filterset_fields = ['identificador_rol', 'titulo', 'descripcion', 'identificador_tabla', 'nombre_tabla']
+    search_fields = ['identificador_rol', 'titulo', 'descripcion', 'identificador_tabla', 'nombre_tabla']
+    
+    
