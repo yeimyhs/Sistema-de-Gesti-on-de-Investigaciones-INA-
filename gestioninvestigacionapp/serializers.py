@@ -35,9 +35,11 @@ class CustomUserSerializer(ModelSerializer):
             "ciudad",
             "email",
             
+            "gradoacademico",
+            "zipcode",
+            
             'email_verified_at',
             'remember_token',
-            'is_staff',
             'cursos'
         ]
 from rest_framework.serializers import ModelSerializer

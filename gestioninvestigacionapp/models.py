@@ -63,6 +63,15 @@ class CustomUserManager(BaseUserManager):
         return self.create_user( email, password, **extra_fields)
 
 class CustomUser(AbstractUser):
+    
+    GRADO_ACADEMICO_CHOICES = [
+        ('Secundaria', 'Secundaria'),
+        ('Bachillerato', 'Bachillerato'),
+        ('Universitario', 'Universitario'),
+        ('Maestría', 'Maestría'),
+        ('Doctorado', 'Doctorado'),
+        ('Otro', 'Otro'),
+    ]
     # Eliminar el campo `username` heredado
     username = None
     
@@ -79,7 +88,13 @@ class CustomUser(AbstractUser):
     ciudad = models.CharField(max_length=128, blank=True, null=True)
     
     
-    gradoacademico = models.CharField(max_length=128, blank=True, null=True)
+    gradoacademico = models.CharField(
+        max_length=20,
+        choices=GRADO_ACADEMICO_CHOICES,
+        blank=True,
+        null=True,
+        default='Otro'
+    )
     zipcode = models.CharField(max_length=20, blank=True, null=True)
     
     email = models.EmailField(unique=True) 
