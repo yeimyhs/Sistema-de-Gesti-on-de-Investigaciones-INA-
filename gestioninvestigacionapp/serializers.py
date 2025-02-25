@@ -9,8 +9,16 @@ from django.contrib.auth import get_user_model
 
 User = get_user_model()
 
+class UserCursoSerializer(ModelSerializer):
+    curso_titulo = serializers.CharField(source="idcurso.titulo", read_only=True)
+    
+    class Meta:
+        model = UserCurso
+        fields = '__all__'
+
 
 class CustomUserSerializer(ModelSerializer):
+    cursos = UserCursoSerializer(source="usercurso_set", many=True, read_only=True)
     class Meta:
         #depth = 1
         model = CustomUser
@@ -30,6 +38,7 @@ class CustomUserSerializer(ModelSerializer):
             'email_verified_at',
             'remember_token',
             'is_staff',
+            'cursos'
         ]
 from rest_framework.serializers import ModelSerializer
 from django.contrib.auth.hashers import make_password
@@ -50,6 +59,9 @@ class RegisterSerializer(ModelSerializer):
             "pais",
             "ciudad",
             "email",
+            "gradoacademico",
+            "zipcode",
+            
         ]
         extra_kwargs = {'password': {'write_only': True}}
 
@@ -179,11 +191,27 @@ class ComponenteSerializer(ModelSerializer):
 
 
 class ConvocatoriaSerializer(ModelSerializer):
-
+    departamento = serializers.SerializerMethodField()
     class Meta:
         model = Convocatoria
         fields = '__all__'
+    
+    
+    def get_departamento(self, obj):
+        """
+        Obtiene los departamentos asociados a la convocatoria a través de los desafíos y cursos.
+        """
+        try:
+            desafios = obj.desafio_set.all()  # Obtener todos los desafíos de la convocatoria
+            departamentos = set()  # Usamos un conjunto para evitar duplicados
 
+            for desafio in desafios:
+                if desafio.idcurso and desafio.idcurso.iddepartamento:
+                    departamentos.add((desafio.idcurso.iddepartamento.iddepartamento, desafio.idcurso.iddepartamento.nombre))
+
+            return [{"id": dep[0], "nombre": dep[1]} for dep in departamentos] if departamentos else None
+        except AttributeError:
+            return None 
 
 class CursoSerializer(ModelSerializer):
 
@@ -301,7 +329,8 @@ class PostulacionPropuestaSerializer(ModelSerializer):
 
 
 class UserCursoSerializer(ModelSerializer):
-
+    curso_titulo = serializers.CharField(source="idcurso.titulo", read_only=True)
+    
     class Meta:
         model = UserCurso
         fields = '__all__'
@@ -319,3 +348,28 @@ class EstadoSerializer(ModelSerializer):
     class Meta:
         model = Estado
         fields = '__all__'
+
+
+class ubigeoDepartamentoSerializer(ModelSerializer):
+
+    class Meta:
+        model = ubigeoDepartamento
+        fields = '__all__'
+
+
+
+class ubigeoProvinciaSerializer(ModelSerializer):
+
+    class Meta:
+        model = ubigeoProvincia
+        fields = '__all__'
+
+
+
+class ubigeoDistritoSerializer(ModelSerializer):
+
+    class Meta:
+        model = Estado
+        fields = '__all__'
+
+

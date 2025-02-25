@@ -43,6 +43,9 @@ router.register(r'postulacionpropuesta', views.PostulacionPropuestaViewSet, 'Pos
 router.register(r'usercurso', views.UserCursoViewSet, 'UserCurso')
 router.register(r'usuariodesafio', views.UsuarioDesafioViewSet, 'UsuarioDesafio')
 router.register(r'estado', views.EstadoViewSet, 'Estado')
+router.register(r'ubigeoDepartamento', views.ubigeoDepartamentoViewSet, 'dep')
+router.register(r'ubigeoProvincia', views.ubigeoProvinciaViewSet, 'prov')
+router.register(r'ubigeoDistrito', views.ubigeoDistritoViewSet, 'dist')
 
 urlpatterns = urlpatterns +  router.urls
 if settings.DEBUG:

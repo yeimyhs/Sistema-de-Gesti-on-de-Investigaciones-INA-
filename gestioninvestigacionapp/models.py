@@ -70,13 +70,17 @@ class CustomUser(AbstractUser):
     nombres = models.CharField(max_length=128)
     fechacreacion = models.DateTimeField(auto_now_add=True)
     apellidos = models.CharField(max_length=128, blank=True, null=True)
-    telefono = models.CharField(max_length=20, blank=True, null=True)
+    telefono = models.CharField(max_length=255, blank=True, null=True)
     fotoperfil = models.ImageField(upload_to='perfilUsuarioimagen/', blank=True, null=True)
     activo = models.BooleanField(default =1)
     
     instituto = models.CharField(max_length=128, blank=True, null=True)
     pais = models.CharField(max_length=128, blank=True, null=True)
     ciudad = models.CharField(max_length=128, blank=True, null=True)
+    
+    
+    gradoacademico = models.CharField(max_length=128, blank=True, null=True)
+    zipcode = models.CharField(max_length=20, blank=True, null=True)
     
     email = models.EmailField(unique=True) 
     email_verified_at = models.DateTimeField(blank=True, null=True)
@@ -98,14 +102,40 @@ class CustomUser(AbstractUser):
 
 
 
+
+class ubigeoDepartamento(models.Model):
+    iddepartamento = models.CharField(max_length=255,primary_key=True)
+    nombre = models.CharField(max_length=255)
+    
+    class Meta:
+        db_table = 'ubigeoDepartamento'
+
+
+class ubigeoProvincia(models.Model):
+    idprovincia = models.CharField(max_length=255,primary_key=True)
+    nombre = models.CharField(max_length=255)
+    iddepartamento = models.ForeignKey(ubigeoDepartamento, models.DO_NOTHING, blank=True, null=True)
+
+    class Meta:
+        db_table = 'ubigeoProvincia'
+
+
+class ubigeoDistrito(models.Model):
+    idciudad = models.CharField(max_length=255,primary_key=True)
+    nombre = models.CharField(max_length=255)
+    idprovincia = models.ForeignKey(ubigeoProvincia, models.DO_NOTHING, blank=True, null=True)
+
+    class Meta:
+        db_table = 'ubigeoDistrito'
+
+
 #-------------------------------------------------------------------------------------------------------------user
 class Actividad(models.Model):
-    fechacreacion = models.DateTimeField(auto_now_add=True)
     fechacreacion = models.DateTimeField(auto_now_add=True)
     idactividad = models.BigAutoField(primary_key=True)
     idproyecto = models.ForeignKey('Desafio', models.DO_NOTHING, db_column='idproyecto')
     tipo = models.BigIntegerField(blank=True, null=True)
-    titulo = models.CharField(max_length=20)
+    titulo = models.CharField(max_length=255)
     descripcion = models.TextField()
     fechaentrega = models.DateField()
     activo = models.BooleanField()
@@ -117,8 +147,7 @@ class Actividad(models.Model):
 
 class Archivo(models.Model):
     fechacreacion = models.DateTimeField(auto_now_add=True)
-    fechacreacion = models.DateTimeField(auto_now_add=True)
-    nombre = models.CharField(max_length=20)
+    nombre = models.CharField(max_length=255)
     ubicacion = models.FileField(upload_to='archivosConvocatoriaDesafio/', blank=True, null=True)
 
     activo = models.BooleanField()
@@ -132,8 +161,7 @@ class Archivo(models.Model):
 
 class ArchivoActividades(models.Model):
     fechacreacion = models.DateTimeField(auto_now_add=True)
-    fechacreacion = models.DateTimeField(auto_now_add=True)
-    nombre = models.CharField(max_length=20)
+    nombre = models.CharField(max_length=255)
     ubicacion = models.FileField(upload_to='archivosActividad/', blank=True, null=True)
 
     activo = models.BooleanField()
@@ -146,8 +174,7 @@ class ArchivoActividades(models.Model):
 
 class ArchivoPostulaciones(models.Model):
     fechacreacion = models.DateTimeField(auto_now_add=True)
-    fechacreacion = models.DateTimeField(auto_now_add=True)
-    nombre = models.CharField(max_length=20)
+    nombre = models.CharField(max_length=255)
     ubicacion = models.FileField(upload_to='archivosPostulacion/', blank=True, null=True)
    
     activo = models.BooleanField()
@@ -161,7 +188,6 @@ class ArchivoPostulaciones(models.Model):
 
 class Componente(models.Model):
     fechacreacion = models.DateTimeField(auto_now_add=True)
-    fechacreacion = models.DateTimeField(auto_now_add=True)
     idcomponente = models.BigAutoField(primary_key=True)
     numero = models.BigIntegerField()
     idproyecto = models.ForeignKey('Desafio', models.DO_NOTHING, db_column='idproyecto', blank=True, null=True)
@@ -170,11 +196,15 @@ class Componente(models.Model):
         db_table = 'Componente'
 
 
+
 class Convocatoria(models.Model):
-    fechacreacion = models.DateTimeField(auto_now_add=True)
-    fechacreacion = models.DateTimeField(auto_now_add=True)
     idconvocatoria = models.BigAutoField(primary_key=True)
-    titulo = models.CharField(max_length=20)
+    fechacreacion = models.DateTimeField(auto_now_add=True)
+    fechainicio = models.DateTimeField(blank=True, null=True)
+    fechafin = models.DateTimeField(blank=True, null=True)
+    grado = models.CharField(max_length=128, blank=True, null=True)
+    
+    titulo = models.CharField(max_length=255)
     descripcion = models.TextField()
     activo = models.BooleanField()
     estado = models.SmallIntegerField()
@@ -182,7 +212,6 @@ class Convocatoria(models.Model):
     prioridadesconvocatoria = models.TextField(blank=True, null=True)
     publicoobjetivo = models.TextField(blank=True, null=True)
     imagen = models.ImageField(upload_to='convocatoriaimagen/', blank=True, null=True)
-    idactividad = models.ForeignKey('Actividadcronograma', models.DO_NOTHING, db_column='idactividad', blank=True, null=True)
 
     class Meta:
         db_table = 'Convocatoria'
@@ -190,13 +219,12 @@ class Convocatoria(models.Model):
 
 class Curso(models.Model):
     fechacreacion = models.DateTimeField(auto_now_add=True)
-    fechacreacion = models.DateTimeField(auto_now_add=True)
     idcurso = models.BigAutoField(primary_key=True)
-    titulo = models.CharField(max_length=20)
-    nivel = models.CharField(max_length=20, blank=True, null=True)
+    titulo = models.CharField(max_length=255)
+    nivel = models.CharField(max_length=255, blank=True, null=True)
     anioacademico = models.IntegerField()
     semestre = models.SmallIntegerField(blank=True, null=True)
-    coordinador = models.CharField(max_length=20, blank=True, null=True)
+    coordinador = models.CharField(max_length=255, blank=True, null=True)
     fecharegistro = models.DateField()
     estado = models.SmallIntegerField()
     activo = models.BooleanField()
@@ -208,13 +236,12 @@ class Curso(models.Model):
 
 class Departamento(models.Model):
     fechacreacion = models.DateTimeField(auto_now_add=True)
-    fechacreacion = models.DateTimeField(auto_now_add=True)
     iddepartamento = models.BigAutoField(primary_key=True)
-    nombre = models.CharField(max_length=20)
-    lugar = models.CharField(max_length=20, blank=True, null=True)
-    email = models.CharField(max_length=20)
-    telefono = models.CharField(max_length=20, blank=True, null=True)
-    director = models.CharField(max_length=20, blank=True, null=True)
+    nombre = models.CharField(max_length=255)
+    lugar = models.CharField(max_length=255, blank=True, null=True)
+    email = models.CharField(max_length=255)
+    telefono = models.CharField(max_length=255, blank=True, null=True)
+    director = models.CharField(max_length=255, blank=True, null=True)
     estado = models.SmallIntegerField()
     activo = models.BooleanField()
     
@@ -224,11 +251,10 @@ class Departamento(models.Model):
 
 class Desafio(models.Model):
     fechacreacion = models.DateTimeField(auto_now_add=True)
-    fechacreacion = models.DateTimeField(auto_now_add=True)
     idproyecto = models.BigAutoField(primary_key=True)
-    idconvocatoria = models.ForeignKey(Convocatoria, models.DO_NOTHING, db_column='idconvocatoria', blank=True, null=True)
+    #idconvocatoria = models.ForeignKey(Convocatoria, models.DO_NOTHING, db_column='idconvocatoria', blank=True, null=True)
     idcurso = models.ForeignKey(Curso, models.DO_NOTHING, db_column='idcurso', blank=True, null=True)
-    titulo = models.CharField(max_length=20)
+    titulo = models.CharField(max_length=255)
     descripcion = models.TextField()
     estado = models.SmallIntegerField()
     activo = models.BooleanField()
@@ -242,9 +268,7 @@ class Desafio(models.Model):
     class Meta:
         db_table = 'Desafio'
 
-
 class Entregable(models.Model):
-    fechacreacion = models.DateTimeField(auto_now_add=True)
     fechacreacion = models.DateTimeField(auto_now_add=True)
     identregable = models.BigAutoField(primary_key=True)
     pdfentregable = models.TextField()
@@ -256,7 +280,6 @@ class Entregable(models.Model):
 
 
 class Evaluacion(models.Model):
-    fechacreacion = models.DateTimeField(auto_now_add=True)
     fechacreacion = models.DateTimeField(auto_now_add=True)
     idevaluacion = models.BigAutoField(primary_key=True)
     comentario = models.TextField()
@@ -272,9 +295,8 @@ class Evaluacion(models.Model):
 
 class Notificciones(models.Model):
     fechacreacion = models.DateTimeField(auto_now_add=True)
-    fechacreacion = models.DateTimeField(auto_now_add=True)
     idnotificacion = models.BigAutoField(primary_key=True)
-    titulo = models.CharField(max_length=20)
+    titulo = models.CharField(max_length=255)
     descripcion = models.TextField()
     activo = models.BooleanField()
     iduser = models.ForeignKey(settings.AUTH_USER_MODEL, models.DO_NOTHING, db_column='iduser', blank=True, null=True)
@@ -285,12 +307,11 @@ class Notificciones(models.Model):
 
 class Plantesis(models.Model):
     fechacreacion = models.DateTimeField(auto_now_add=True)
-    fechacreacion = models.DateTimeField(auto_now_add=True)
     idplanformacion = models.BigAutoField(primary_key=True)
     idproyecto = models.ForeignKey(Desafio, models.DO_NOTHING, db_column='idproyecto', blank=True, null=True)
-    titulo = models.CharField(max_length=20, blank=True, null=True)
-    justificacion = models.CharField(max_length=20, blank=True, null=True)
-    abstract = models.CharField(max_length=20)
+    titulo = models.CharField(max_length=255, blank=True, null=True)
+    justificacion = models.CharField(max_length=255, blank=True, null=True)
+    abstract = models.CharField(max_length=255)
     objgeneral = models.TextField(blank=True, null=True)
     objetivosespecificos = models.TextField(blank=True, null=True)  # This field type is a guess.
 
@@ -300,17 +321,16 @@ class Plantesis(models.Model):
 
 class Postulante(models.Model):
     fechacreacion = models.DateTimeField(auto_now_add=True)
-    fechacreacion = models.DateTimeField(auto_now_add=True)
     iduser = models.BigAutoField(primary_key=True)
-    nombres = models.CharField(max_length=20)
-    apellidos = models.CharField(max_length=20)
-    email = models.CharField(max_length=20)
-    institucion = models.CharField(max_length=20, blank=True, null=True)
+    nombres = models.CharField(max_length=255)
+    apellidos = models.CharField(max_length=255)
+    email = models.CharField(max_length=255)
+    institucion = models.CharField(max_length=255, blank=True, null=True)
     activo = models.BooleanField()
-    pais = models.CharField(max_length=20, blank=True, null=True)
-    ciudad = models.CharField(max_length=20, blank=True, null=True)
+    pais = models.CharField(max_length=255, blank=True, null=True)
+    ciudad = models.CharField(max_length=255, blank=True, null=True)
     fotoperfil = models.TextField(blank=True, null=True)
-    telefono = models.CharField(max_length=20, blank=True, null=True)
+    telefono = models.CharField(max_length=255, blank=True, null=True)
     idproyecto = models.ForeignKey('PostulacionPropuesta', models.DO_NOTHING, db_column='idproyecto', blank=True, null=True)
 
     class Meta:
@@ -319,9 +339,8 @@ class Postulante(models.Model):
 
 class Presupuesto(models.Model):
     fechacreacion = models.DateTimeField(auto_now_add=True)
-    fechacreacion = models.DateTimeField(auto_now_add=True)
     idproyecto = models.ForeignKey(Desafio, models.DO_NOTHING, db_column='idproyecto', blank=True, null=True)
-    partida = models.CharField(max_length=20)
+    partida = models.CharField(max_length=255)
     monto = models.FloatField()
     idpresupuesto = models.BigAutoField(primary_key=True)
 
@@ -330,7 +349,6 @@ class Presupuesto(models.Model):
 
 
 class Reporte(models.Model):
-    fechacreacion = models.DateTimeField(auto_now_add=True)
     fechacreacion = models.DateTimeField(auto_now_add=True)
     idreporte = models.BigAutoField(primary_key=True)
     evaluacionnota = models.BigIntegerField(blank=True, null=True)
@@ -343,7 +361,6 @@ class Reporte(models.Model):
 
 class Retroalimentacion(models.Model):
     fechacreacion = models.DateTimeField(auto_now_add=True)
-    fechacreacion = models.DateTimeField(auto_now_add=True)
     idretroalimentacion = models.BigAutoField(primary_key=True)
     idreporte = models.ForeignKey(Reporte, models.DO_NOTHING, db_column='idreporte', blank=True, null=True)
     comentario = models.TextField(blank=True, null=True)
@@ -353,7 +370,6 @@ class Retroalimentacion(models.Model):
 
 
 class Retroalimentacionacttecnica(models.Model):
-    fechacreacion = models.DateTimeField(auto_now_add=True)
     fechacreacion = models.DateTimeField(auto_now_add=True)
     idretroalimentacion = models.BigAutoField(primary_key=True)
     identregable = models.ForeignKey(Entregable, models.DO_NOTHING, db_column='identregable', blank=True, null=True)
@@ -365,7 +381,6 @@ class Retroalimentacionacttecnica(models.Model):
 
 class Rubrica(models.Model):
     fechacreacion = models.DateTimeField(auto_now_add=True)
-    fechacreacion = models.DateTimeField(auto_now_add=True)
     idproyecto = models.ForeignKey(Desafio, models.DO_NOTHING, db_column='idproyecto', blank=True, null=True)
     idrubrica = models.BigAutoField(primary_key=True)
 
@@ -376,19 +391,18 @@ class Rubrica(models.Model):
 
 class Actividadcronograma(models.Model):
     fechacreacion = models.DateTimeField(auto_now_add=True)
-    fechacreacion = models.DateTimeField(auto_now_add=True)
-    titulo = models.CharField(max_length=20)
+    titulo = models.CharField(max_length=255)
     activo = models.BooleanField()
     fechainicial = models.DateField(blank=True, null=True)
     fechafinal = models.DateField(blank=True, null=True)
     idactividad = models.BigAutoField(primary_key=True)
+    idconvocatoria = models.ForeignKey('Convocatoria', models.DO_NOTHING, db_column='idconvocatoria', blank=True, null=True)
 
     class Meta:
         db_table = 'actividadCronograma'
 
 
 class Actividadtecnica(models.Model):
-    fechacreacion = models.DateTimeField(auto_now_add=True)
     fechacreacion = models.DateTimeField(auto_now_add=True)
     idactividadtecnica = models.BigIntegerField(db_column='idactividadTecnica', primary_key=True)  # Field name made lowercase.
     tipo = models.BigIntegerField(blank=True, null=True)
@@ -397,17 +411,20 @@ class Actividadtecnica(models.Model):
     fechainicio = models.DateField(blank=True, null=True)
     fechafinal = models.DateField(blank=True, null=True)
     activo = models.DateField()
-    titulo = models.CharField(max_length=20)
+    titulo = models.CharField(max_length=255)
 
     class Meta:
         db_table = 'actividadTecnica'
 
 
 
+
+
 class PostulacionPropuesta(models.Model):
+    id =  models.BigAutoField(primary_key=True)
+    
     fechacreacion = models.DateTimeField(auto_now_add=True)
-    fechacreacion = models.DateTimeField(auto_now_add=True)
-    idproyecto = models.OneToOneField(Desafio, models.DO_NOTHING, db_column='idproyecto', primary_key=True)
+    idproyecto = models.ForeignKey(Desafio, models.DO_NOTHING, db_column='idproyecto')
     detallepropuesta = models.TextField()
     titulo = models.TextField()
     practico = models.FloatField(blank=True, null=True)
@@ -425,9 +442,10 @@ class PostulacionPropuesta(models.Model):
 
 
 class UserCurso(models.Model):
+    id =  models.BigAutoField(primary_key=True)
+    
     fechacreacion = models.DateTimeField(auto_now_add=True)
-    fechacreacion = models.DateTimeField(auto_now_add=True)
-    iduser = models.OneToOneField(settings.AUTH_USER_MODEL, models.DO_NOTHING, db_column='iduser', primary_key=True)
+    iduser = models.ForeignKey(settings.AUTH_USER_MODEL, models.DO_NOTHING, db_column='iduser')
     idcurso = models.ForeignKey(Curso, models.DO_NOTHING, db_column='idcurso')
     rol = models.SmallIntegerField()
 
@@ -437,9 +455,10 @@ class UserCurso(models.Model):
 
 
 class UsuarioDesafio(models.Model):
+    id =  models.BigAutoField(primary_key=True)
+    
     fechacreacion = models.DateTimeField(auto_now_add=True)
-    fechacreacion = models.DateTimeField(auto_now_add=True)
-    iduser = models.OneToOneField(settings.AUTH_USER_MODEL, models.DO_NOTHING, db_column='iduser', primary_key=True)
+    iduser = models.ForeignKey(settings.AUTH_USER_MODEL, models.DO_NOTHING, db_column='iduser')
     idproyecto = models.ForeignKey(Desafio, models.DO_NOTHING, db_column='idproyecto')
     rol = models.SmallIntegerField()
 

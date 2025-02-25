@@ -124,8 +124,8 @@ class ConvocatoriaViewSet(ModelViewSet):
     queryset = Convocatoria.objects.order_by('pk')
     serializer_class = ConvocatoriaSerializer
     filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend]
-    filterset_fields = ['idconvocatoria', 'activo', 'estado', 'fechacreacion', 'idactividad', 'idactividad__titulo']
-    search_fields = ['titulo', 'descripcion', 'objetivogeneral', 'idactividad__titulo']
+    filterset_fields = ['idconvocatoria', 'activo', 'estado', 'fechacreacion']
+    search_fields = ['titulo', 'descripcion', 'objetivogeneral']
 
 class CursoViewSet(ModelViewSet):
     queryset = Curso.objects.order_by('pk')
@@ -202,6 +202,7 @@ class ReporteViewSet(ModelViewSet):
     filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend]
     filterset_fields = ['idreporte', 'evaluacionnota', 'idactividad','idactividad__titulo']
     search_fields = ['idactividad__titulo']
+
 
 
 class RetroalimentacionViewSet(ModelViewSet):
@@ -281,3 +282,29 @@ class EstadoViewSet(ModelViewSet):
     filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend]
     filterset_fields = ['valor', 'clave', 'descripcion', 'identificador_tabla', 'nombre_tabla']
     search_fields = ['valor', 'clave', 'descripcion', 'identificador_tabla', 'nombre_tabla']
+    
+    
+
+class ubigeoDepartamentoViewSet(ModelViewSet):
+    queryset = ubigeoDepartamento.objects.order_by('pk')
+    serializer_class = ubigeoDepartamentoSerializer
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend]
+    filterset_fields = ['iddepartamento', 'nombre']
+    search_fields = ['nombre']
+
+
+class ubigeoProvinciaViewSet(ModelViewSet):
+    queryset = ubigeoProvincia.objects.order_by('pk')
+    serializer_class = ubigeoProvinciaSerializer
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend]
+    filterset_fields = ['idprovincia', 'nombre', 'iddepartamento']
+    search_fields = ['nombre']
+
+
+class ubigeoDistritoViewSet(ModelViewSet):
+    queryset = ubigeoDistrito.objects.order_by('pk')
+    serializer_class = ubigeoDistritoSerializer
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend]
+    filterset_fields = ['idciudad', 'nombre', 'idprovincia']
+    search_fields = ['nombre']
+
