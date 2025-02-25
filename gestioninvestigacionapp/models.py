@@ -217,6 +217,7 @@ class Convocatoria(models.Model):
     fechacreacion = models.DateTimeField(auto_now_add=True)
     fechainicio = models.DateTimeField(blank=True, null=True)
     fechafin = models.DateTimeField(blank=True, null=True)
+    fechaevaluacion = models.DateTimeField(blank=True, null=True)
     grado = models.CharField(max_length=128, blank=True, null=True)
     
     titulo = models.CharField(max_length=255)
@@ -251,6 +252,7 @@ class Curso(models.Model):
 
 class Departamento(models.Model):
     fechacreacion = models.DateTimeField(auto_now_add=True)
+    imagen = models.ImageField(upload_to='departamentoimagen/', blank=True, null=True)
     iddepartamento = models.BigAutoField(primary_key=True)
     nombre = models.CharField(max_length=255)
     lugar = models.CharField(max_length=255, blank=True, null=True)
@@ -267,7 +269,7 @@ class Departamento(models.Model):
 class Desafio(models.Model):
     fechacreacion = models.DateTimeField(auto_now_add=True)
     idproyecto = models.BigAutoField(primary_key=True)
-    #idconvocatoria = models.ForeignKey(Convocatoria, models.DO_NOTHING, db_column='idconvocatoria', blank=True, null=True)
+    idconvocatoria = models.ForeignKey(Convocatoria, models.DO_NOTHING, db_column='idconvocatoria', blank=True, null=True)
     idcurso = models.ForeignKey(Curso, models.DO_NOTHING, db_column='idcurso', blank=True, null=True)
     titulo = models.CharField(max_length=255)
     descripcion = models.TextField()
