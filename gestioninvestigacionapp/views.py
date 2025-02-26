@@ -184,8 +184,8 @@ class PlantesisViewSet(ModelViewSet):
     queryset = Plantesis.objects.order_by('pk')
     serializer_class = PlantesisSerializer
     filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend]
-    filterset_fields = ['idplanformacion', 'idproyecto', 'idproyecto__titulo']
-    search_fields = ['titulo', 'abstract', 'idproyecto__titulo']
+    filterset_fields = [ 'titulo','justificacion','abstract' ]
+    search_fields = ['titulo', 'abstract','justificacion']
 
 
 class PostulanteViewSet(ModelViewSet):

@@ -345,13 +345,12 @@ class Notificciones(models.Model):
 class Plantesis(models.Model):
     fechacreacion = models.DateTimeField(auto_now_add=True)
     idplanformacion = models.BigAutoField(primary_key=True)
-    idproyecto = models.ForeignKey(Desafio, models.DO_NOTHING, db_column='idproyecto', blank=True, null=True)
     titulo = models.CharField(max_length=255, blank=True, null=True)
     justificacion = models.CharField(max_length=255, blank=True, null=True)
     abstract = models.CharField(max_length=255)
     objgeneral = models.TextField(blank=True, null=True)
     objetivosespecificos = models.TextField(blank=True, null=True)  # This field type is a guess.
-
+    #verificar si los campos seran json
     class Meta:
         db_table = 'PlanTesis'
 
@@ -510,6 +509,7 @@ class CursoDesafio(models.Model):
     iddatostecnicos = models.ForeignKey(DatosTecnicos, models.DO_NOTHING, blank=True, null=True)
     fechacreacion = models.DateTimeField(auto_now_add=True)
     idcurso = models.ForeignKey(Curso, models.DO_NOTHING, db_column='idcurso')
+    idplanformacion = models.ForeignKey(Plantesis, models.DO_NOTHING)
     rol = models.SmallIntegerField()
 
     class Meta:
