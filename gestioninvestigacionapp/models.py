@@ -213,15 +213,23 @@ class ArchivoPostulaciones(models.Model):
         db_table = 'Archivo_postulaciones'
 
 
+class DatosTecnicos(models.Model):
+    descripcion = models.TextField( blank=True, null=True)
+    fechacreacion = models.DateTimeField(auto_now_add=True)
+    iddatostecnicos = models.BigAutoField(primary_key=True)
+
+    class Meta:
+        db_table = 'DatosTecnicos'
+
+
 class Componente(models.Model):
     fechacreacion = models.DateTimeField(auto_now_add=True)
     idcomponente = models.BigAutoField(primary_key=True)
     numero = models.BigIntegerField()
-    idproyecto = models.ForeignKey('Desafio', models.DO_NOTHING, db_column='idproyecto', blank=True, null=True)
+    iddatostecnicos = models.ForeignKey(DatosTecnicos, models.DO_NOTHING, db_column='idproyecto', blank=True, null=True)
 
     class Meta:
         db_table = 'Componente'
-
 
 
 class Convocatoria(models.Model):
@@ -283,7 +291,6 @@ class Desafio(models.Model):
     fechacreacion = models.DateTimeField(auto_now_add=True)
     idproyecto = models.BigAutoField(primary_key=True)
     idconvocatoria = models.ForeignKey(Convocatoria, models.DO_NOTHING, db_column='idconvocatoria', blank=True, null=True)
-    idcurso = models.ForeignKey(Curso, models.DO_NOTHING, db_column='idcurso', blank=True, null=True)
     titulo = models.CharField(max_length=255)
     descripcion = models.TextField()
     estado = models.SmallIntegerField()
@@ -493,7 +500,21 @@ class UserCurso(models.Model):
 
     class Meta:
         db_table = 'user_curso'
+        #borar porque  un profe pude ser tbn un coordinador
         unique_together = (('iduser', 'idcurso'),)
+
+
+class CursoDesafio(models.Model):
+    id =  models.BigAutoField(primary_key=True)
+    idproyecto = models.ForeignKey(Desafio, models.DO_NOTHING, db_column='idproyecto')
+    iddatostecnicos = models.ForeignKey(DatosTecnicos, models.DO_NOTHING, blank=True, null=True)
+    fechacreacion = models.DateTimeField(auto_now_add=True)
+    idcurso = models.ForeignKey(Curso, models.DO_NOTHING, db_column='idcurso')
+    rol = models.SmallIntegerField()
+
+    class Meta:
+        db_table = 'curso_desafio'
+        unique_together = (('idproyecto', 'idcurso'),)
 
 
 class UsuarioDesafio(models.Model):

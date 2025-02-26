@@ -117,9 +117,17 @@ class ComponenteViewSet(ModelViewSet):
     queryset = Componente.objects.order_by('pk')
     serializer_class = ComponenteSerializer
     filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend]
-    filterset_fields = ['idcomponente', 'numero', 'idproyecto', 'idproyecto__titulo']
-    search_fields = ['idproyecto__titulo']
+    filterset_fields = ['idcomponente', 'numero', 'iddatostecnicos', 'iddatostecnicos__descripcion']
+    search_fields = ['iddatostecnicos__descripcion']
 
+class DatosTecnicosViewSet(ModelViewSet):
+    queryset = DatosTecnicos.objects.order_by('pk')
+    serializer_class = DatosTecnicosSerializer
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend]
+    filterset_fields = ['descripcion']
+    search_fields = ['descripcion']
+    
+    
 class ConvocatoriaViewSet(ModelViewSet):
     queryset = Convocatoria.objects.order_by('pk')
     serializer_class = ConvocatoriaSerializer
@@ -146,8 +154,8 @@ class DesafioViewSet(ModelViewSet):
     queryset = Desafio.objects.order_by('pk')
     serializer_class = DesafioSerializer
     filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend]
-    filterset_fields = ['idproyecto', 'estado', 'eliminado', 'fechacreacion', 'idconvocatoria', 'idconvocatoria__titulo', 'idcurso', 'idcurso__titulo']
-    search_fields = ['titulo', 'descripcion', 'idconvocatoria__titulo', 'idcurso__titulo']
+    filterset_fields = ['idproyecto', 'estado', 'eliminado', 'fechacreacion', 'idconvocatoria', 'idconvocatoria__titulo']
+    search_fields = ['titulo', 'descripcion', 'idconvocatoria__titulo', '']
 
 
 class EntregableViewSet(ModelViewSet):

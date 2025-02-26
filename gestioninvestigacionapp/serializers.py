@@ -191,6 +191,13 @@ class ComponenteSerializer(ModelSerializer):
         fields = '__all__'
 
 
+class DatosTecnicosSerializer(ModelSerializer):
+
+    class Meta:
+        model = DatosTecnicos
+        fields = '__all__'
+
+
 class ConvocatoriaSerializer(ModelSerializer):
     departamento = serializers.SerializerMethodField()
     class Meta:
