@@ -224,8 +224,15 @@ class RubricaViewSet(ModelViewSet):
     queryset = Rubrica.objects.order_by('pk')
     serializer_class = RubricaSerializer
     filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend]
-    filterset_fields = ['idproyecto', 'idproyecto__titulo']
-    search_fields = ['idproyecto__titulo']
+    filterset_fields = ['descripcion']
+    search_fields = ['descripcion']
+    
+class CriterioViewSet(ModelViewSet):
+    queryset = Criterio.objects.order_by('pk')
+    serializer_class = CriterioSerializer
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend]
+    filterset_fields = ['titulo','descripcion',"peso",'puntaje','idrubrica'  ]
+    search_fields = ['titulo','descripcion',"peso",'puntaje' ]
 
 class UserViewSet(ModelViewSet):
     queryset = CustomUser.objects.order_by('pk')

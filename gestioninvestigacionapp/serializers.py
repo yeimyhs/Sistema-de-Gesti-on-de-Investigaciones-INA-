@@ -298,6 +298,13 @@ class RetroalimentacionacttecnicaSerializer(ModelSerializer):
         fields = '__all__'
 
 
+class CriterioSerializer(ModelSerializer):
+
+    class Meta:
+        model = Criterio
+        fields = '__all__'
+
+
 class RubricaSerializer(ModelSerializer):
 
     class Meta:

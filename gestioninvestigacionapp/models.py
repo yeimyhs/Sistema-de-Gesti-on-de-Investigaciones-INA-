@@ -257,6 +257,7 @@ class Curso(models.Model):
     estado = models.SmallIntegerField()
     eliminado = models.BooleanField(default=0)
     iddepartamento = models.ForeignKey('Departamento', models.DO_NOTHING, db_column='iddepartamento', blank=True, null=True)
+    idrubrica = models.ForeignKey('Rubrica', models.DO_NOTHING, blank=True, null=True)
 
     class Meta:
         db_table = 'Curso'
@@ -409,12 +410,24 @@ class Retroalimentacionacttecnica(models.Model):
 
 
 class Rubrica(models.Model):
+    descripcion = models.TextField( blank=True, null=True)
     fechacreacion = models.DateTimeField(auto_now_add=True)
-    idproyecto = models.ForeignKey(Desafio, models.DO_NOTHING, db_column='idproyecto', blank=True, null=True)
     idrubrica = models.BigAutoField(primary_key=True)
 
     class Meta:
         db_table = 'Rubrica'
+
+class Criterio(models.Model):
+    fechacreacion = models.DateTimeField(auto_now_add=True)
+    idcriterio = models.BigAutoField(primary_key=True)
+    titulo = models.CharField(max_length=255)
+    descripcion = models.TextField( blank=True, null=True)
+    peso = models.FloatField()
+    puntaje = models.FloatField()
+    idrubrica = models.ForeignKey(Rubrica, models.DO_NOTHING, blank=True, null=True)
+
+    class Meta:
+        db_table = 'Criterio'
 
 
 
