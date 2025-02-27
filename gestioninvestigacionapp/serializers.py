@@ -221,6 +221,14 @@ class ConvocatoriaSerializer(ModelSerializer):
         except AttributeError:
             return None 
 
+
+
+class CursoDesafioSerializer(ModelSerializer):
+    class Meta:
+        model = CursoDesafio
+        fields = '__all__'
+
+
 class CursoSerializer(ModelSerializer):
 
     class Meta:

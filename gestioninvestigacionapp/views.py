@@ -283,6 +283,14 @@ class UserCursoViewSet(ModelViewSet):
     filterset_fields = ['iduser', 'idcurso', 'iduser__nombres', 'idcurso__titulo']
     search_fields = ['iduser__nombres', 'idcurso__titulo']
 
+
+class CursoDesafioViewSet(ModelViewSet):
+    queryset = CursoDesafio.objects.order_by('pk')
+    serializer_class = CursoDesafioSerializer
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend]
+    filterset_fields = ['idproyecto', 'idcurso', 'iddatostecnicos','idplanformacion', 'idcurso__titulo']
+    search_fields = ['idproyecto__titulo', 'idcurso__titulo']
+
 class UsuarioDesafioViewSet(ModelViewSet):
     queryset = UsuarioDesafio.objects.order_by('pk')
     serializer_class = UsuarioDesafioSerializer

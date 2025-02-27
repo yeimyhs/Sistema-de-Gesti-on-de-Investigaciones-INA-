@@ -49,6 +49,7 @@ router.register(r'ubigeoDistrito', views.ubigeoDistritoViewSet, 'dist')
 router.register(r'roles', views.RolViewSet, "rol")
 router.register(r'criterio', views.CriterioViewSet, "criterio")
 router.register(r'datostecnicos', views.DatosTecnicosViewSet, "datostecnicos")
+router.register(r'cursodesafio', views.CursoDesafioViewSet, "cursodesafio")
 
 urlpatterns = urlpatterns +  router.urls
 if settings.DEBUG:

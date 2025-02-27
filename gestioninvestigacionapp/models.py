@@ -484,6 +484,7 @@ class PostulacionPropuesta(models.Model):
     pionerocomentario = models.TextField(blank=True, null=True)
     antecedentes = models.TextField()
     cumplimientorequerimientos = models.TextField()
+    estado = models.SmallIntegerField()
 
     class Meta:
         db_table = 'postulacion_propuesta'
@@ -500,7 +501,8 @@ class UserCurso(models.Model):
     class Meta:
         db_table = 'user_curso'
         #borar porque  un profe pude ser tbn un coordinador
-        unique_together = (('iduser', 'idcurso'),)
+        #unique_together = (
+        #    ('iduser', 'idcurso'),)
 
 
 class CursoDesafio(models.Model):
@@ -509,8 +511,8 @@ class CursoDesafio(models.Model):
     iddatostecnicos = models.ForeignKey(DatosTecnicos, models.DO_NOTHING, blank=True, null=True)
     fechacreacion = models.DateTimeField(auto_now_add=True)
     idcurso = models.ForeignKey(Curso, models.DO_NOTHING, db_column='idcurso')
-    idplanformacion = models.ForeignKey(Plantesis, models.DO_NOTHING)
-    rol = models.SmallIntegerField()
+    idplanformacion = models.ForeignKey(Plantesis, models.DO_NOTHING, blank=True, null=True)
+    
 
     class Meta:
         db_table = 'curso_desafio'
