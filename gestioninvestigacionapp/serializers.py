@@ -198,7 +198,18 @@ class DatosTecnicosSerializer(ModelSerializer):
         fields = '__all__'
 
 
+class ActividadcronogramaSerializer(ModelSerializer):
+
+    class Meta:
+        model = Actividadcronograma
+        fields = '__all__'
+
+
+
 class ConvocatoriaSerializer(ModelSerializer):
+    archivos = ArchivoSerializer(source='archivo_set', many=True, read_only=True)
+    actividades = ActividadcronogramaSerializer(source='actividadcronograma_set', many=True, read_only=True)
+
     departamento = serializers.SerializerMethodField()
     class Meta:
         model = Convocatoria
@@ -328,12 +339,6 @@ class RubricaSerializer(ModelSerializer):
 
 
 
-
-class ActividadcronogramaSerializer(ModelSerializer):
-
-    class Meta:
-        model = Actividadcronograma
-        fields = '__all__'
 
 
 class ActividadtecnicaSerializer(ModelSerializer):
