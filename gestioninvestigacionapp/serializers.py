@@ -33,6 +33,7 @@ class CustomUserSerializer(ModelSerializer):
             "pais",
             "ciudad",
             "email",
+            "direccion",
             
             "gradoacademico",
             "zipcode",
@@ -57,6 +58,7 @@ class RegisterSerializer(ModelSerializer):
             "fotoperfil",
             "eliminado",
             "instituto",
+            "direccion",
             "pais",
             "ciudad",
             "email",
