@@ -96,6 +96,7 @@ class CustomUser(AbstractUser):
     eliminado = models.BooleanField(default =1)
     
     instituto = models.CharField(max_length=128, blank=True, null=True)
+    direccion = models.CharField(max_length=255, blank=True, null=True)
     pais = models.CharField(max_length=128, blank=True, null=True)
     ciudad = models.CharField(max_length=128, blank=True, null=True)
     

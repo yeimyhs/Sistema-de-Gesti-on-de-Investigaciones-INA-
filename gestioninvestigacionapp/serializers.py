@@ -255,6 +255,7 @@ class DepartamentoSerializer(ModelSerializer):
 
 
 class DesafioSerializer(ModelSerializer):
+    #archivos = ArchivoSerializer(source='archivo_set', many=True, read_only=True)
 
     class Meta:
         model = Desafio
