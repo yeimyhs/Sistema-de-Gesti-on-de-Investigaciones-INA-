@@ -206,11 +206,13 @@ class ActividadcronogramaSerializer(ModelSerializer):
         model = Actividadcronograma
         fields = '__all__'
 
-
-
+from django.utils.timezone import now
+import os
+from django.core.files.base import ContentFile
+import json
 class ConvocatoriaSerializer(ModelSerializer):
-    archivos = ArchivoSerializer(source='archivo_set', many=True, read_only=True)
-    actividades = ActividadcronogramaSerializer(source='actividadcronograma_set', many=True, read_only=True)
+    archivos = ArchivoSerializer(source='archivo_set', many=True, required=False)
+    actividades = ActividadcronogramaSerializer(source='actividadcronograma_set', many=True, required=False)
 
     departamento = serializers.SerializerMethodField()
     class Meta:
@@ -233,6 +235,48 @@ class ConvocatoriaSerializer(ModelSerializer):
             return [{"id": dep[0], "nombre": dep[1]} for dep in departamentos] if departamentos else None
         except AttributeError:
             return None 
+        
+    def create(self, validated_data):
+        request = self.context['request']
+        archivos_data = self.context['request'].FILES.getlist('archivos')  # Obtiene los archivos enviados
+        convocatoria = Convocatoria.objects.create(**validated_data)  # Crea la convocatoria en la BD
+         # Obtener actividades desde 'data' y convertir de JSON a lista de diccionarios
+        actividades_json = request.data.get('actividades', '[]')  # Si no se envía, usar lista vacía
+        actividades_data = json.loads(actividades_json) if actividades_json else []
+
+        for archivo in archivos_data:
+            extension = os.path.splitext(archivo.name)[1]  # Extrae la extensión original (ej: .pdf, .jpg)
+            nuevo_nombre = f"{convocatoria.titulo}{extension}"  # Usa el título como nombre del archivo
+
+            # Crear instancia de Archivo con el archivo renombrado
+            archivo_instance = Archivo(
+                nombre=convocatoria.titulo,
+                ubicacion=archivo,  # Guarda el archivo real
+                fechacreacion=now(),
+                idconvocatoria=convocatoria,
+                idproyecto=None
+            )
+
+            # Renombrar el archivo antes de guardarlo
+            archivo_instance.ubicacion.save(nuevo_nombre, ContentFile(archivo.read()), save=True)
+
+        for actividad_data in actividades_data:
+            Actividadcronograma.objects.create(idconvocatoria=convocatoria, **actividad_data)
+
+        return convocatoria
+    
+    def update(self, instance, validated_data):
+        archivos_data = validated_data.pop('archivos', [])  # Obtiene los archivos del request
+        instance = super().update(instance, validated_data)  # Actualiza la convocatoria
+
+        # Elimina archivos antiguos si es necesario
+        Archivo.objects.filter(idconvocatoria=instance).delete()
+
+        # Agrega los nuevos archivos
+        for archivo_data in archivos_data:
+            Archivo.objects.create(idconvocatoria=instance, **archivo_data)
+
+        return instance
 
 
 

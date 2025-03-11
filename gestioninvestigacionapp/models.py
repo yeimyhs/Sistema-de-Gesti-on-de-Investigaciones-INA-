@@ -234,13 +234,22 @@ class Componente(models.Model):
 
 
 class Convocatoria(models.Model):
+    GRADO_CHOICES = [
+        ('Pregrado', 'Pregrado'),
+        ('Posgrado', 'Posgrado'),
+    ]
+    
     idconvocatoria = models.BigAutoField(primary_key=True)
     fechacreacion = models.DateTimeField(auto_now_add=True)
     fechainicio = models.DateTimeField(blank=True, null=True)
     fechafin = models.DateTimeField(blank=True, null=True)
     fechaevaluacion = models.DateTimeField(blank=True, null=True)
-    grado = models.CharField(max_length=128, blank=True, null=True)
-    
+    grado = models.CharField(max_length=20,
+        choices=GRADO_CHOICES,
+        blank=True,
+        null=True,
+        default='Otro'
+    )
     titulo = models.CharField(max_length=255)
     descripcion = models.TextField()
     eliminado = models.BooleanField(default=0)
