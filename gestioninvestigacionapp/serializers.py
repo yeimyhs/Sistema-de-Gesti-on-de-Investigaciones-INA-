@@ -301,6 +301,7 @@ class CursoSerializer(ModelSerializer):
 
 
 class DepartamentoSerializer(ModelSerializer):
+    director_detalles = CustomUserSerializer(read_only=True)
 
     class Meta:
         model = Departamento
