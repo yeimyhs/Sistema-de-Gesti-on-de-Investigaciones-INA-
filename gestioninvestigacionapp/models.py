@@ -293,7 +293,8 @@ class Departamento(models.Model):
     lugar = models.CharField(max_length=255, blank=True, null=True)
     email = models.CharField(max_length=255)
     telefono = models.CharField(max_length=255, blank=True, null=True)
-    director = models.CharField(max_length=255, blank=True, null=True)
+    director = models.ForeignKey(settings.AUTH_USER_MODEL, models.DO_NOTHING, db_column='iduser')
+    
     estado = models.SmallIntegerField()
     eliminado = models.BooleanField(default=0)
     
