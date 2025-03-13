@@ -114,6 +114,10 @@ class CustomUser(AbstractUser):
     email_verified_at = models.DateTimeField(blank=True, null=True)
     remember_token = models.CharField(max_length=100, blank=True, null=True)
 
+
+    plataforma = models.SmallIntegerField()
+    estado = models.SmallIntegerField()
+
     # Especificar que el campo para autenticar es `nombreusuario`
     USERNAME_FIELD = 'email'
     

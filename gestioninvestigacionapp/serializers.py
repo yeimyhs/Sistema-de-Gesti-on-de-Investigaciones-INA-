@@ -40,7 +40,11 @@ class CustomUserSerializer(ModelSerializer):
             
             'email_verified_at',
             'remember_token',
-            'cursos'
+            'cursos',
+            
+            "estado",
+            "plataforma",
+            
         ]
 from rest_framework.serializers import ModelSerializer
 from django.contrib.auth.hashers import make_password
@@ -64,6 +68,9 @@ class RegisterSerializer(ModelSerializer):
             "email",
             "gradoacademico",
             "zipcode",
+            
+            "estado",
+            "plataforma",
             
         ]
         extra_kwargs = {'password': {'write_only': True}}
