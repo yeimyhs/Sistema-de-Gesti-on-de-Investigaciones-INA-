@@ -141,7 +141,7 @@ class CursoViewSet(ModelViewSet):
     serializer_class = CursoSerializer
     filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend, DateTimeIntervalFilter]
     filterset_fields = ['idcurso', 'anioacademico', 'semestre', 'eliminado', 'estado', 'iddepartamento', 'iddepartamento__nombre']
-    search_fields = ['titulo', 'coordinador', 'iddepartamento__nombre']
+    search_fields = ['titulo', 'iddepartamento__nombre']
 
 class DepartamentoViewSet(ModelViewSet):
     queryset = Departamento.objects.order_by('pk')

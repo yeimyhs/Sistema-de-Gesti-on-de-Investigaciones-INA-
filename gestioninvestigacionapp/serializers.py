@@ -382,19 +382,31 @@ class ConvocatoriaSerializer(ModelSerializer):
         return instance
 
 
+class CursoCoordinadorSerializer(serializers.ModelSerializer):
+    iduser = RegisterSerializer()  # Incluye los detalles del usuario
+
+    class Meta:
+        model = UserCurso
+        fields = ['iduser']  # Solo necesitamos el usuario, puedes agregar más si lo deseas
 
 
 class CursoDesafioSerializer(ModelSerializer):
+
     class Meta:
         model = CursoDesafio
         fields = '__all__'
-
+        
 
 class CursoSerializer(ModelSerializer):
+    coordinadores = serializers.SerializerMethodField()
 
     class Meta:
         model = Curso
         fields = '__all__'
+
+    def get_coordinadores(self, obj):
+        coordinadores = UserCurso.objects.filter(idcurso=obj, rol=1).select_related('iduser')
+        return CursoCoordinadorSerializer(coordinadores, many=True).data
 
 
 class DepartamentoSerializer(ModelSerializer):

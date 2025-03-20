@@ -281,7 +281,7 @@ class Curso(models.Model):
     nivel = models.CharField(max_length=255, blank=True, null=True)
     anioacademico = models.IntegerField()
     semestre = models.SmallIntegerField(blank=True, null=True)
-    coordinador = models.CharField(max_length=255, blank=True, null=True)
+    #coordinador = models.CharField(max_length=255, blank=True, null=True)
     fecharegistro = models.DateField()
     estado = models.SmallIntegerField()
     eliminado = models.BooleanField(default=0)
