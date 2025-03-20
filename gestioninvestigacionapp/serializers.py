@@ -383,7 +383,7 @@ class ConvocatoriaSerializer(ModelSerializer):
 
 
 class CursoCoordinadorSerializer(serializers.ModelSerializer):
-    iduser = RegisterSerializer()  # Incluye los detalles del usuario
+    iduser = CustomUserSerializer()  # Incluye los detalles del usuario
 
     class Meta:
         model = UserCurso
@@ -405,7 +405,7 @@ class CursoSerializer(ModelSerializer):
         fields = '__all__'
 
     def get_coordinadores(self, obj):
-        coordinadores = UserCurso.objects.filter(idcurso=obj, rol=1).select_related('iduser')
+        coordinadores = UserCurso.objects.filter(idcurso=obj, rol=6).select_related('iduser')
         return CursoCoordinadorSerializer(coordinadores, many=True).data
 
 

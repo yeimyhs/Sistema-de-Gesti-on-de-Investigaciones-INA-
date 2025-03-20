@@ -282,7 +282,6 @@ class Curso(models.Model):
     anioacademico = models.IntegerField()
     semestre = models.SmallIntegerField(blank=True, null=True)
     #coordinador = models.CharField(max_length=255, blank=True, null=True)
-    fecharegistro = models.DateField()
     estado = models.SmallIntegerField()
     eliminado = models.BooleanField(default=0)
     iddepartamento = models.ForeignKey('Departamento', models.DO_NOTHING, db_column='iddepartamento', blank=True, null=True)
