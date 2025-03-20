@@ -156,7 +156,7 @@ class DesafioViewSet(ModelViewSet):
     serializer_class = DesafioSerializer
     filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend, DateTimeIntervalFilter]
     filterset_fields = ['idproyecto', 'estado', 'eliminado', 'fechacreacion', 'idconvocatoria', 'idconvocatoria__titulo']
-    search_fields = ['titulo', 'descripcion', 'idconvocatoria__titulo', '']
+    search_fields = ['titulo', 'descripcion', 'idconvocatoria__titulo']
 
 
 class EntregableViewSet(ModelViewSet):
@@ -359,4 +359,34 @@ class RolViewSet(ModelViewSet):
     filterset_fields = ['identificador_rol', 'titulo', 'descripcion']
     search_fields = ['identificador_rol', 'titulo', 'descripcion']
     
-    
+
+# views.py
+from django.core.mail import send_mail
+from django.conf import settings
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from rest_framework import status
+
+class ContactoAPIView(APIView):
+    def post(self, request):
+        subject = request.data.get("subject")  # Título del mensaje
+        contenido = request.data.get("contenido")  # Cuerpo del mensaje
+        #email_remitente = request.data.get("email")  # Email del usuario que envía
+
+        # Validación rápida
+        if not subject or not contenido :
+            return Response({"error": "Todos los campos son obligatorios"}, status=status.HTTP_400_BAD_REQUEST)
+
+        mensaje = f"{contenido}"
+
+        try:
+            send_mail(
+                subject,
+                mensaje,
+                settings.DEFAULT_FROM_EMAIL,  # Remitente
+                [settings.EMAIL_HOST_USER],  # Destinatario
+                fail_silently=False,
+            )
+            return Response({"message": "Correo enviado correctamente"}, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
