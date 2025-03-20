@@ -134,6 +134,13 @@ class CustomUser(AbstractUser):
 
 
 
+class ubigeoPais(models.Model):
+    idpais = models.CharField(max_length=255,primary_key=True)
+    nombre = models.CharField(max_length=255)
+    
+    class Meta:
+        db_table = 'ubigeoPais'
+
 
 class ubigeoDepartamento(models.Model):
     iddepartamento = models.CharField(max_length=255,primary_key=True)

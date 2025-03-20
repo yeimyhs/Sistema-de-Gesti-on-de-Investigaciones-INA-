@@ -308,6 +308,14 @@ class EstadoViewSet(ModelViewSet):
     search_fields = ['valor', 'clave', 'descripcion', 'identificador_tabla', 'nombre_tabla']
     
     
+class ubigeoPaisViewSet(ModelViewSet):
+    queryset = ubigeoPais.objects.order_by('pk')
+    serializer_class = ubigeoPaisSerializer
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend, DateTimeIntervalFilter]
+    filterset_fields = ['idpais', 'nombre']
+    search_fields = ['nombre']
+
+
 
 class ubigeoDepartamentoViewSet(ModelViewSet):
     queryset = ubigeoDepartamento.objects.order_by('pk')

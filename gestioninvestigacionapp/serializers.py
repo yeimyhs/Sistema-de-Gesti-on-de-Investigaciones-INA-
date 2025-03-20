@@ -247,10 +247,15 @@ class ConvocatoriaSerializer(ModelSerializer):
         request = self.context['request']
         archivos_data = self.context['request'].FILES.getlist('archivos')  # Obtiene los archivos enviados
         convocatoria = Convocatoria.objects.create(**validated_data)  # Crea la convocatoria en la BD
-         # Obtener actividades desde 'data' y convertir de JSON a lista de diccionarios
+        imagen_data = request.FILES.get('imagen', None)
+        # Obtener actividades desde 'data' y convertir de JSON a lista de diccionarios
         actividades_json = request.data.get('actividades', '[]')  # Si no se envía, usar lista vacía
         actividades_data = json.loads(actividades_json) if actividades_json else []
 
+        # Obtener desafíos desde 'data' y convertir de JSON a lista de IDs
+        desafios_json = request.data.get('desafios', '[]')
+        desafios_ids = json.loads(desafios_json) if desafios_json else []
+        
         for archivo in archivos_data:
             extension = os.path.splitext(archivo.name)[1]  # Extrae la extensión original (ej: .pdf, .jpg)
             nuevo_nombre = f"{convocatoria.titulo}{extension}"  # Usa el título como nombre del archivo
@@ -270,20 +275,66 @@ class ConvocatoriaSerializer(ModelSerializer):
         for actividad_data in actividades_data:
             Actividadcronograma.objects.create(idconvocatoria=convocatoria, **actividad_data)
 
+        # Vincular los desafíos existentes con la convocatoria
+        Desafio.objects.filter(idproyecto__in=desafios_ids).update(idconvocatoria=convocatoria)
+
+        if imagen_data:
+            convocatoria.imagen.save(imagen_data.name, imagen_data, save=True)
         return convocatoria
     
     def update(self, instance, validated_data):
-        archivos_data = validated_data.pop('archivos', [])  # Obtiene los archivos del request
-        instance = super().update(instance, validated_data)  # Actualiza la convocatoria
+        request = self.context['request']
+        archivos_data = request.FILES.getlist('archivos')  # Obtiene los archivos enviados
+        
+        # Obtener actividades desde 'data' y convertir de JSON a lista de diccionarios
+        actividades_json = request.data.get('actividades', '[]')
+        actividades_data = json.loads(actividades_json) if actividades_json else []
+        
+        # Obtener desafíos desde 'data' y convertir de JSON a lista de IDs
+        desafios_json = request.data.get('desafios', '[]')
+        nuevos_desafios_ids = set(json.loads(desafios_json) if desafios_json else [])
+        imagen_data = request.FILES.get('imagen', None)
+        
+        # Actualizar la instancia con los nuevos datos
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+        
+        # Eliminar archivos antiguos y agregar los nuevos
+        instance.archivo_set.all().delete()
+        for archivo in archivos_data:
+            extension = os.path.splitext(archivo.name)[1]  # Extrae la extensión original (ej: .pdf, .jpg)
+            nuevo_nombre = f"{instance.titulo}{extension}"  # Usa el título como nombre del archivo
 
-        # Elimina archivos antiguos si es necesario
-        Archivo.objects.filter(idconvocatoria=instance).delete()
-
-        # Agrega los nuevos archivos
-        for archivo_data in archivos_data:
-            Archivo.objects.create(idconvocatoria=instance, **archivo_data)
-
+            archivo_instance = Archivo(
+                nombre=instance.titulo,
+                ubicacion=archivo,  # Guarda el archivo real
+                fechacreacion=now(),
+                idconvocatoria=instance,
+                idproyecto=None
+            )
+            
+            archivo_instance.ubicacion.save(nuevo_nombre, ContentFile(archivo.read()), save=True)
+        
+        # Eliminar todas las actividades antiguas y agregar las nuevas
+        instance.actividadcronograma_set.all().delete()
+        for actividad_data in actividades_data:
+            Actividadcronograma.objects.create(idconvocatoria=instance, **actividad_data)
+        if imagen_data:
+            instance.imagen.save(imagen_data.name, imagen_data, save=True)
+        
+        instance.save()
+        # Actualizar los desafíos
+        desafios_anteriores_ids = set(instance.desafio_set.values_list('idproyecto', flat=True))
+        
+        # Quitar el idconvocatoria de los desafíos antiguos
+        Desafio.objects.filter(idproyecto__in=desafios_anteriores_ids).update(idconvocatoria=None)
+        
+        # Asignar la convocatoria a los nuevos desafíos
+        Desafio.objects.filter(idproyecto__in=nuevos_desafios_ids).update(idconvocatoria=instance)
+        
         return instance
+
 
 
 
@@ -301,7 +352,7 @@ class CursoSerializer(ModelSerializer):
 
 
 class DepartamentoSerializer(ModelSerializer):
-    director = CustomUserSerializer(read_only=True)
+    directordetalle = CustomUserSerializer(source='director',read_only=True)
 
     class Meta:
         model = Departamento
@@ -309,11 +360,34 @@ class DepartamentoSerializer(ModelSerializer):
 
 
 class DesafioSerializer(ModelSerializer):
-    #archivos = ArchivoSerializer(source='archivo_set', many=True, read_only=True)
+    archivos = ArchivoSerializer(source='archivo_set', many=True, read_only=True)
 
     class Meta:
         model = Desafio
         fields = '__all__'
+        
+    def create(self, validated_data):
+        request = self.context['request']
+        archivos_data = self.context['request'].FILES.getlist('archivos')  # Obtiene los archivos enviados
+        desafio = Desafio.objects.create(**validated_data)  # Crea la convocatoria en la BD
+     
+        for archivo in archivos_data:
+            extension = os.path.splitext(archivo.name)[1]  # Extrae la extensión original (ej: .pdf, .jpg)
+            nuevo_nombre = f"{desafio.titulo}{extension}"  # Usa el título como nombre del archivo
+
+            # Crear instancia de Archivo con el archivo renombrado
+            archivo_instance = Archivo(
+                nombre=desafio.titulo,
+                ubicacion=archivo,  # Guarda el archivo real
+                fechacreacion=now(),
+                idproyecto=desafio,
+                idconvocatoria=None
+            )
+
+            # Renombrar el archivo antes de guardarlo
+            archivo_instance.ubicacion.save(nuevo_nombre, ContentFile(archivo.read()), save=True)
+
+        return desafio
 
 
 class EntregableSerializer(ModelSerializer):
@@ -424,6 +498,12 @@ class EstadoSerializer(ModelSerializer):
 
     class Meta:
         model = Estado
+        fields = '__all__'
+
+class ubigeoPaisSerializer(ModelSerializer):
+
+    class Meta:
+        model = ubigeoPais
         fields = '__all__'
 
 
