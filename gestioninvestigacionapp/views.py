@@ -244,7 +244,7 @@ class CriterioViewSet(ModelViewSet):
     search_fields = ['titulo','descripcion',"peso",'puntaje' ]
 
 class UserViewSet(ModelViewSet):
-    queryset = CustomUser.objects.order_by('pk')
+    queryset = CustomUser.objects.prefetch_related('usuariorolsistema_set__idrol').all().order_by('pk')
     serializer_class = CustomUserSerializer
     filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend, DateTimeIntervalFilter]
     filterset_fields = [    'id', 'nombres', 'apellidos', 'telefono', 'eliminado',    'instituto', 'pais', 'ciudad', 'email', 'email_verified_at']
@@ -340,6 +340,14 @@ class ubigeoDistritoViewSet(ModelViewSet):
     filterset_fields = ['idciudad', 'nombre', 'idprovincia']
     search_fields = ['nombre']
 
+class UsuarioRolSistemaViewSet(ModelViewSet):
+    queryset = UsuarioRolSistema.objects.all()
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend, DateTimeIntervalFilter]
+    serializer_class = UsuarioRolSistemaSerializer
+    filterset_fields = []
+    search_fields = ['idrol', 'iduser']
+    
+    
 
 class RolViewSet(ModelViewSet):
     """
@@ -348,7 +356,7 @@ class RolViewSet(ModelViewSet):
     queryset = Rol.objects.all()
     filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend, DateTimeIntervalFilter]
     serializer_class = RolSerializer
-    filterset_fields = ['identificador_rol', 'titulo', 'descripcion', 'identificador_tabla', 'nombre_tabla']
-    search_fields = ['identificador_rol', 'titulo', 'descripcion', 'identificador_tabla', 'nombre_tabla']
+    filterset_fields = ['identificador_rol', 'titulo', 'descripcion']
+    search_fields = ['identificador_rol', 'titulo', 'descripcion']
     
     

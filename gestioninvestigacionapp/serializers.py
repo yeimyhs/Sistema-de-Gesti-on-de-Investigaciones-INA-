@@ -19,6 +19,7 @@ class UserCursoSerializer(ModelSerializer):
 
 class CustomUserSerializer(ModelSerializer):
     cursos = UserCursoSerializer(source="usercurso_set", many=True, read_only=True)
+    roles = serializers.SerializerMethodField()
     class Meta:
         #depth = 1
         model = CustomUser
@@ -44,8 +45,13 @@ class CustomUserSerializer(ModelSerializer):
             
             "estado",
             "plataforma",
+            'roles'
             
         ]
+    def get_roles(self, obj):
+        # Obtener los roles del usuario en una sola consulta
+        roles = Rol.objects.filter(usuariorolsistema__iduser=obj).values('identificador_rol', 'titulo')
+        return list(roles)
 from rest_framework.serializers import ModelSerializer
 from django.contrib.auth.hashers import make_password
 from .models import CustomUser  # Asegúrate de importar tu modelo de usuario
@@ -529,9 +535,14 @@ class ubigeoDistritoSerializer(ModelSerializer):
         model = Estado
         fields = '__all__'
 
+class UsuarioRolSistemaSerializer(ModelSerializer):
 
+    class Meta:
+        model = UsuarioRolSistema
+        fields = '__all__'
 
 class RolSerializer(serializers.ModelSerializer):
     class Meta:
         model = Rol
         fields = '__all__'  # Incluir todos los campos del modelo
+

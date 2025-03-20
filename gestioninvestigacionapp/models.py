@@ -16,14 +16,14 @@ from django.contrib.auth.models import AbstractUser, BaseUserManager
 
 class Rol(models.Model):
     
-    identificador_rol = models.IntegerField() 
-    nombre_tabla = models.CharField(max_length=255, help_text="Nombre de la tabla a la que pertenece este estado")
-    identificador_tabla = models.CharField(max_length=255, help_text="Identificador único del registro dentro de la tabla")  # ID de la tabla relacionada
+    identificador_rol = models.BigAutoField(primary_key=True) 
+    #nombre_tabla = models.CharField(max_length=255, help_text="Nombre de la tabla a la que pertenece este estado")
+    #identificador_tabla = models.CharField(max_length=255, help_text="Identificador único del registro dentro de la tabla")  # ID de la tabla relacionada
     descripcion = models.TextField(blank=True, null=True)  # Descripción opcional
     titulo = models.CharField(max_length=255)  # Título del rol
 
     def __str__(self):
-        return f"{self.titulo} - {self.nombre_tabla} ({self.identificador_tabla})"
+        return f"{self.titulo}"
 
 
 class Estado(models.Model):
@@ -552,6 +552,19 @@ class UsuarioDesafio(models.Model):
     class Meta:
         db_table = 'usuario_desafio'
         unique_together = (('iduser', 'idproyecto'),)
+
+
+class UsuarioRolSistema(models.Model):
+    id =  models.BigAutoField(primary_key=True)
+    
+    fechacreacion = models.DateTimeField(auto_now_add=True)
+    iduser = models.ForeignKey(settings.AUTH_USER_MODEL, models.DO_NOTHING, db_column='iduser')
+    idrol = models.ForeignKey(Rol, models.DO_NOTHING, db_column='idrol')
+
+    class Meta:
+        db_table = 'usuario_rol'
+        unique_together = (('iduser', 'idrol'),)
+
 
 
 
