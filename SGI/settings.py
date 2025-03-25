@@ -14,8 +14,8 @@ from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
-
+from dotenv import load_dotenv
+import os
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-+6gew42w4@q6ijd^15k#b0knso5h+cmb&5^(g*wq8u$z6^d(+5
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost','127.0.0.1', '18.220.9.56']
+ALLOWED_HOSTS = ['83.136.219.34','localhost','127.0.0.1', '18.220.9.56']
 
 
 # Application definition
@@ -87,19 +87,18 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'SGI.wsgi.application'
 
-
+load_dotenv()
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'gestioninvestigacion',
-        'USER': 'postgres',
+        'NAME': os.getenv('BD_NAME'),#'gestioninvestigacion',
+        'USER': os.getenv('BD_USERNAME'),#'postgres',
         ##'USER':'streaminguser',
-        'PASSWORD': 'yeimyhs',
+        'PASSWORD': os.getenv('BD_PASSWORD'),#'yeimyhs',
         'HOST': 'localhost',
-        'PORT': '5433',
+        'PORT': os.getenv('BD_PORT'),#'5433',
         #'PORT': '5432',
     }
 }
@@ -128,7 +127,7 @@ REST_KNOX = {
 
 
 
-DATETIME_FORMAT = 'Y-m-d H:i:s' 
+DATETIME_FORMAT = 'Y-m-d H:i' 
 
 
 
@@ -211,6 +210,9 @@ EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = "smtp.gmail.com"  # Cambia esto según el proveedor
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = "yhuancas@unsa.edu.pe"  # Coloca tu correo
-EMAIL_HOST_PASSWORD = "bzneqbbqsawmgclb"  # Usa una variable de entorno para más seguridad
+EMAIL_HOST_USER =os.getenv('EMAIL_HOST_USER', default='')# "yhuancas@unsa.edu.pe"  # Coloca tu correo
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', default='')#"bzneqbbqsawmgclb"  # Usa una variable de entorno para más seguridad
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER  # Para que el remitente sea tu mismo correo
+
+DATA_UPLOAD_MAX_MEMORY_SIZE = 104857600
+FILE_UPLOAD_MAX_MEMORY_SIZE = 104857600
