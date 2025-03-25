@@ -396,9 +396,17 @@ class CursoDesafioSerializer(ModelSerializer):
         model = CursoDesafio
         fields = '__all__'
         
+class DepartamentoSerializer(ModelSerializer):
+    directordetalle = CustomUserSerializer(source='director',read_only=True)
+
+    class Meta:
+        model = Departamento
+        fields = '__all__'
+
 
 class CursoSerializer(ModelSerializer):
     coordinadores = serializers.SerializerMethodField()
+    departamentodetalle = DepartamentoSerializer(source='iddepartamento', many=False, required=False)
 
     class Meta:
         model = Curso
@@ -409,12 +417,6 @@ class CursoSerializer(ModelSerializer):
         return CursoCoordinadorSerializer(coordinadores, many=True).data
 
 
-class DepartamentoSerializer(ModelSerializer):
-    directordetalle = CustomUserSerializer(source='director',read_only=True)
-
-    class Meta:
-        model = Departamento
-        fields = '__all__'
 
 
 class EntregableSerializer(ModelSerializer):
@@ -567,3 +569,12 @@ class RolSerializer(serializers.ModelSerializer):
         model = Rol
         fields = '__all__'  # Incluir todos los campos del modelo
 
+
+
+class PasswordResetRequestSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+
+    def validate_email(self, value):
+        if not CustomUser.objects.filter(email=value).exists():
+            raise serializers.ValidationError("No se encontró un usuario con ese correo.")
+        return value

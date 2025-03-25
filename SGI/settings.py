@@ -95,12 +95,12 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'gestioninvestigacion',
-        #'USER': 'postgres',
-        'USER':'streaminguser',
+        'USER': 'postgres',
+        ##'USER':'streaminguser',
         'PASSWORD': 'yeimyhs',
         'HOST': 'localhost',
-        #'PORT': '5433',
-        'PORT': '5432',
+        'PORT': '5433',
+        #'PORT': '5432',
     }
 }
 
@@ -201,5 +201,16 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static'),  # para archivos estáticos adicionales
 ]
 
-MEDIA_URL = '/api/media/'  # URL pública para acceder a los archivos
+
+
+MEDIA_URL = '/media/'  # URL pública para acceder a los archivos
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')  # Ruta donde se guardan los archivos físicamente
+# settings.py
+
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = "smtp.gmail.com"  # Cambia esto según el proveedor
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = "yhuancas@unsa.edu.pe"  # Coloca tu correo
+EMAIL_HOST_PASSWORD = "bzneqbbqsawmgclb"  # Usa una variable de entorno para más seguridad
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER  # Para que el remitente sea tu mismo correo

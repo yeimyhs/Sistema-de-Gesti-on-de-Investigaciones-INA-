@@ -29,6 +29,7 @@ class Rol(models.Model):
 class Estado(models.Model):
     nombre_tabla = models.CharField(max_length=255, help_text="Nombre de la tabla a la que pertenece este estado")
     identificador_tabla = models.CharField(max_length=255, help_text="Identificador único del registro dentro de la tabla")
+    tipodashboard = models.SmallIntegerField()
     descripcion = models.CharField(max_length=255)
     clave = models.CharField(max_length=255, help_text="Clave del estado")
     valor = models.CharField(help_text="Valor del estado")

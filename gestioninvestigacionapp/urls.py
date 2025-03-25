@@ -15,6 +15,10 @@ urlpatterns = [
     path('logout/', knox_views.LogoutView.as_view(), name='knox_logout'),
     path('logoutall/', knox_views.LogoutAllView.as_view(), name='knox_logoutall'),
     path("contacto/", views.ContactoAPIView.as_view(), name="contacto"),
+    
+    path('password-reset-request/', views.PasswordResetRequestView.as_view(), name='password_reset_request'),
+    path('password-reset/', views.PasswordResetView.as_view(), name='password_reset'),
+   
 ]
 
 router.register(r'actividad', views.ActividadViewSet, 'Actividad')
