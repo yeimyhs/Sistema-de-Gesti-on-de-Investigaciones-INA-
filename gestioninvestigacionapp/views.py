@@ -271,10 +271,10 @@ class ActividadtecnicaViewSet(ModelViewSet):
 
 
 class PostulacionPropuestaViewSet(ModelViewSet):
-    queryset = PostulacionPropuesta.objects.prefetch_related('postulante_set').order_by('pk')
+    queryset = PostulacionPropuesta.objects.prefetch_related("idproyecto__idconvocatoria", "iduser",'postulante_set').order_by('pk')
     serializer_class = PostulacionPropuestaSerializer
     filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend, DateTimeIntervalFilter]
-    filterset_fields = ['idproyecto', 'titulo', 'idproyecto__titulo','aceptado','iduser','iduser__nombres','iduser__email','aceptado','practico','rentable','pionero','total']
+    filterset_fields = ['idproyecto', 'titulo', 'idproyecto__titulo','aceptado','iduser','iduser__nombres','iduser__email','aceptado','practico','rentable','pionero','total','idproyecto__idconvocatoria']
     search_fields = ['titulo', 'idproyecto__titulo','iduser__nombres']
 
 class UserCursoViewSet(ModelViewSet):

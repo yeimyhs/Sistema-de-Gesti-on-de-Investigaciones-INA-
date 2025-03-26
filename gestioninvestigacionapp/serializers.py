@@ -408,8 +408,8 @@ class ConvocatoriaSerializer(ModelSerializer):
 
 
 class CursoCoordinadorSerializer(serializers.ModelSerializer):
-    iduser = CustomUserSerializer()  # Incluye los detalles del usuario
-
+    iduserdetalle = CustomUserSerializer(read_only=True)  # Incluye los detalles del usuario
+  
     class Meta:
         model = UserCurso
         fields = ['iduser']  # Solo necesitamos el usuario, puedes agregar más si lo deseas
