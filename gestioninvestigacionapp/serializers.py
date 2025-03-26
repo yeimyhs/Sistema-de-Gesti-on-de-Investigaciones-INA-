@@ -204,12 +204,74 @@ class CustomAuthTokenSerializer(serializers.Serializer):
         attrs["user"] = user
         return attrs
     
-class ActividadSerializer(ModelSerializer):
+class ArchivoActividadesSerializer(ModelSerializer):
 
+    class Meta:
+        model = ArchivoActividades
+        fields = '__all__'
+
+    
+class ActividadSerializer(ModelSerializer):
+    archivos = ArchivoActividadesSerializer(source='archivoactividades_set', many=True, read_only=True)
     class Meta:
         model = Actividad
         fields = '__all__'
+    def create(self, validated_data):
+        request = self.context['request']
+        archivos_data = self.context['request'].FILES.getlist('archivos')  # Obtiene los archivos enviados
+        actividad = Actividad.objects.create(**validated_data)  # Crea la convocatoria en la BD
 
+        archivosnombres_data = request.data.get('archivosnombres', '[]')
+        archivosnombres_data = json.loads(request.data.get('archivosnombres', '[]'))  # Asegurar que sea una lista
+
+        for archivo, archivonombre in zip( archivos_data,archivosnombres_data):
+        
+            extension = os.path.splitext(archivo.name)[1]  # Extrae la extensión original (ej: .pdf, .jpg)
+            nuevo_nombre = f"{actividad.titulo}{extension}"  # Usa el título como nombre del archivo
+
+            
+            # Crear instancia de Archivo con el archivo renombrado
+            archivo_instance = ArchivoActividades(
+                nombre=archivonombre,
+                ubicacion=archivo,  # Guarda el archivo real
+                fechacreacion=now(),
+                idactividad=actividad
+            )
+
+            # Renombrar el archivo antes de guardarlo
+            archivo_instance.ubicacion.save(nuevo_nombre, ContentFile(archivo.read()), save=True)
+
+        return actividad
+    def update(self, instance, validated_data):
+        request = self.context['request']
+        
+        # Obtener archivos enviados y sus nombres
+        archivos_data = request.FILES.getlist('archivos')
+        archivosnombres_data = json.loads(request.data.get('archivosnombres', '[]'))  # Asegurar que sea una lista
+
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+
+        # ✅ Guardar cambios en la instancia antes de manejar archivos
+        instance.save()
+
+        instance.archivo_set.all().delete()
+
+        # 📂 Agregar nuevos archivos con nombres personalizados
+        for archivo, archivonombre in zip(archivos_data, archivosnombres_data):
+            extension = os.path.splitext(archivo.name)[1]  # Extraer la extensión original
+            nuevo_nombre = f"{instance.titulo}{extension}"  # Nombre basado en el título del Desafio
+
+            archivo_instance = ArchivoActividades(
+                nombre=archivonombre,
+                fechacreacion=now(),
+                idactividad=instance
+            )
+            
+            # 📌 Guardar el archivo en la ubicación correcta
+            archivo_instance.ubicacion.save(nuevo_nombre, ContentFile(archivo.read()), save=True)
+
+        return instance
 
 class ArchivoSerializer(ModelSerializer):
 
@@ -218,11 +280,6 @@ class ArchivoSerializer(ModelSerializer):
         fields = '__all__'
 
 
-class ArchivoActividadesSerializer(ModelSerializer):
-
-    class Meta:
-        model = ArchivoActividades
-        fields = '__all__'
 
 
 class ArchivoPostulacionesSerializer(ModelSerializer):
@@ -265,14 +322,19 @@ class DesafioSerializer(ModelSerializer):
         request = self.context['request']
         archivos_data = self.context['request'].FILES.getlist('archivos')  # Obtiene los archivos enviados
         desafio = Desafio.objects.create(**validated_data)  # Crea la convocatoria en la BD
-     
-        for archivo in archivos_data:
+
+        archivosnombres_data = request.data.get('archivosnombres', '[]')
+        archivosnombres_data = json.loads(request.data.get('archivosnombres', '[]'))  # Asegurar que sea una lista
+
+        for archivo, archivonombre in zip( archivos_data,archivosnombres_data):
+        
             extension = os.path.splitext(archivo.name)[1]  # Extrae la extensión original (ej: .pdf, .jpg)
             nuevo_nombre = f"{desafio.titulo}{extension}"  # Usa el título como nombre del archivo
 
+            
             # Crear instancia de Archivo con el archivo renombrado
             archivo_instance = Archivo(
-                nombre=desafio.titulo,
+                nombre=archivonombre,
                 ubicacion=archivo,  # Guarda el archivo real
                 fechacreacion=now(),
                 idproyecto=desafio,
@@ -283,7 +345,37 @@ class DesafioSerializer(ModelSerializer):
             archivo_instance.ubicacion.save(nuevo_nombre, ContentFile(archivo.read()), save=True)
 
         return desafio
+    def update(self, instance, validated_data):
+        request = self.context['request']
+        
+        # Obtener archivos enviados y sus nombres
+        archivos_data = request.FILES.getlist('archivos')
+        archivosnombres_data = json.loads(request.data.get('archivosnombres', '[]'))  # Asegurar que sea una lista
 
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+
+        # ✅ Guardar cambios en la instancia antes de manejar archivos
+        instance.save()
+
+        instance.archivo_set.all().delete()
+
+        # 📂 Agregar nuevos archivos con nombres personalizados
+        for archivo, archivonombre in zip(archivos_data, archivosnombres_data):
+            extension = os.path.splitext(archivo.name)[1]  # Extraer la extensión original
+            nuevo_nombre = f"{instance.titulo}{extension}"  # Nombre basado en el título del Desafio
+
+            archivo_instance = Archivo(
+                nombre=archivonombre,
+                fechacreacion=now(),
+                idproyecto=instance,
+                idconvocatoria=None
+            )
+            
+            # 📌 Guardar el archivo en la ubicación correcta
+            archivo_instance.ubicacion.save(nuevo_nombre, ContentFile(archivo.read()), save=True)
+
+        return instance
 
 class DepartamentoSerializer(ModelSerializer):
     directordetalle = UserSimpleDetalleSerializer(source='director',read_only=True)

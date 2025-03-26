@@ -528,6 +528,7 @@ class UserCurso(models.Model):
 
     class Meta:
         db_table = 'user_curso'
+        unique_together = (('iduser', 'idcurso', 'rol'),) 
         #borar porque  un profe pude ser tbn un coordinador
         #unique_together = (
         #    ('iduser', 'idcurso'),)
@@ -557,7 +558,7 @@ class UsuarioDesafio(models.Model):
 
     class Meta:
         db_table = 'usuario_desafio'
-        unique_together = (('iduser', 'idproyecto'),)
+        unique_together = (('iduser', 'idproyecto', 'rol'),)
 
 
 class UsuarioRolSistema(models.Model):
@@ -569,7 +570,6 @@ class UsuarioRolSistema(models.Model):
 
     class Meta:
         db_table = 'usuario_rol'
-        unique_together = (('iduser', 'idrol'),)
 
 
 

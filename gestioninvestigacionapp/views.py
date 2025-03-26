@@ -19,6 +19,14 @@ from django.http import JsonResponse
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters
 
+
+from django.db import transaction
+from rest_framework.response import Response
+from rest_framework.decorators import action
+from rest_framework import status
+
+
+
 class RegisterAPI(generics.GenericAPIView):
     serializer_class = RegisterSerializer
     filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend, DateTimeIntervalFilter]
@@ -283,7 +291,53 @@ class UserCursoViewSet(ModelViewSet):
     filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend, DateTimeIntervalFilter]
     filterset_fields = ['iduser', 'idcurso', 'iduser__nombres', 'idcurso__titulo']
     search_fields = ['iduser__nombres', 'idcurso__titulo']
+    
+    def create(self, request, *args, **kwargs):
+        """ Sobrescribe el método de creación para agregar automáticamente un registro en UsuarioRolSistema. """
+        with transaction.atomic():
+            # Crear el registro en UserCurso
+            response = super().create(request, *args, **kwargs)
+            
+            # Obtener los datos creados
+            usercurso = UserCurso.objects.get(pk=response.data['id'])
+            iduser = usercurso.iduser
+            idrol = usercurso.rol  # Usamos el rol recibido en la solicitud
 
+            # Verificar si la combinación (iduser, idrol) ya existe en UsuarioRolSistema
+            UsuarioRolSistema.objects.create(iduser=iduser, idrol_id=idrol)
+
+        return response
+    
+    @action(detail=False, methods=["post"])
+    def matricular_estudiantes(self, request):
+        """ Servicio para matricular múltiples estudiantes en un curso. """
+        data = request.data
+        idcurso = data.get("idcurso")
+        idusers = data.get("idusers", [])  # Lista de IDs de usuarios
+
+        # Validar que el curso existe
+        try:
+            curso = Curso.objects.get(pk=idcurso)
+        except Curso.DoesNotExist:
+            return Response({"error": "El curso no existe."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Validar que los usuarios existen
+        usuarios = CustomUser.objects.filter(id__in=idusers)
+        if usuarios.count() != len(idusers):
+            return Response({"error": "Uno o más usuarios no existen."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Transacción para garantizar que todas las inserciones sean atómicas
+        try:
+            with transaction.atomic():
+                registros = [
+                    UserCurso(iduser=user, idcurso=curso, rol=7)
+                    for user in usuarios
+                ]
+                UserCurso.objects.bulk_create(registros)
+        except Exception as e:
+            return Response({"error": f"Error al matricular: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        return Response({"message": "Estudiantes matriculados exitosamente."}, status=status.HTTP_201_CREATED)
 
 class CursoDesafioViewSet(ModelViewSet):
     queryset = CursoDesafio.objects.order_by('pk')
