@@ -252,6 +252,7 @@ class Convocatoria(models.Model):
     ]
     
     idconvocatoria = models.BigAutoField(primary_key=True)
+    iddepartamento = models.ForeignKey('Departamento', models.DO_NOTHING, db_column='iddepartamento', blank=True, null=True)
     fechacreacion = models.DateTimeField(auto_now_add=True)
     fechainicio = models.DateTimeField(blank=True, null=True)
     fechafin = models.DateTimeField(blank=True, null=True)

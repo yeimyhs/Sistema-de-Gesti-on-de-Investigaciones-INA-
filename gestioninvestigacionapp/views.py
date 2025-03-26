@@ -133,7 +133,7 @@ class ConvocatoriaViewSet(ModelViewSet):
     queryset = Convocatoria.objects.order_by('pk')
     serializer_class = ConvocatoriaSerializer
     filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend, DateTimeIntervalFilter]
-    filterset_fields = ['idconvocatoria', 'eliminado', 'estado', 'fechacreacion']
+    filterset_fields = ['idconvocatoria', 'eliminado', 'estado', 'fechacreacion', 'iddepartamento']
     search_fields = ['titulo', 'descripcion', 'objetivogeneral']
 
 class CursoViewSet(ModelViewSet):

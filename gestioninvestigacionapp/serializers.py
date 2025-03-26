@@ -285,6 +285,14 @@ class DesafioSerializer(ModelSerializer):
         return desafio
 
 
+class DepartamentoSerializer(ModelSerializer):
+    directordetalle = CustomUserSerializer(source='director',read_only=True)
+
+    class Meta:
+        model = Departamento
+        fields = '__all__'
+
+
 from django.utils.timezone import now
 import os
 from django.core.files.base import ContentFile
@@ -293,28 +301,12 @@ class ConvocatoriaSerializer(ModelSerializer):
     archivos = ArchivoSerializer(source='archivo_set', many=True, required=False)
     actividades = ActividadcronogramaSerializer(source='actividadcronograma_set', many=True, required=False)
     desafios = DesafioSerializer(source='desafio_set', many=True, required=False)
+    departamentodetalle = DepartamentoSerializer(source='iddepartamento', many=False, required=False)
 
-    departamento = serializers.SerializerMethodField()
     class Meta:
         model = Convocatoria
         fields = '__all__'
-    
-    
-    def get_departamento(self, obj):
-        """
-        Obtiene los departamentos asociados a la convocatoria a través de los desafíos y cursos.
-        """
-        try:
-            desafios = obj.desafio_set.all()  # Obtener todos los desafíos de la convocatoria
-            departamentos = set()  # Usamos un conjunto para evitar duplicados
 
-            for desafio in desafios:
-                if desafio.idcurso and desafio.idcurso.iddepartamento:
-                    departamentos.add((desafio.idcurso.iddepartamento.iddepartamento, desafio.idcurso.iddepartamento.nombre))
-
-            return [{"id": dep[0], "nombre": dep[1]} for dep in departamentos] if departamentos else None
-        except AttributeError:
-            return None 
         
     def create(self, validated_data):
         request = self.context['request']
@@ -429,12 +421,6 @@ class CursoDesafioSerializer(ModelSerializer):
         model = CursoDesafio
         fields = '__all__'
         
-class DepartamentoSerializer(ModelSerializer):
-    directordetalle = CustomUserSerializer(source='director',read_only=True)
-
-    class Meta:
-        model = Departamento
-        fields = '__all__'
 
 
 class CursoSerializer(ModelSerializer):
