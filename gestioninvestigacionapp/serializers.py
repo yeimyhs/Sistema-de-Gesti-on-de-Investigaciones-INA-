@@ -113,7 +113,7 @@ class RegisterSerializer(ModelSerializer):
 
 class UserCursoDetalleUserSerializer(ModelSerializer):
     #curso_titulo = serializers.CharField(source="idcurso.titulo", read_only=True)
-    userdetalle = UserSimpleDetalleSerializer(source='iduser', many=False, required=False)
+    userdetalle = UserSimpleDetalleSerializer(source='iduser', many=False, required=False, read_only=True)
     
     class Meta:
         model = UserCurso
@@ -286,7 +286,7 @@ class DesafioSerializer(ModelSerializer):
 
 
 class DepartamentoSerializer(ModelSerializer):
-    directordetalle = CustomUserSerializer(source='director',read_only=True)
+    directordetalle = UserSimpleDetalleSerializer(source='director',read_only=True)
 
     class Meta:
         model = Departamento
@@ -408,7 +408,7 @@ class ConvocatoriaSerializer(ModelSerializer):
 
 
 class CursoCoordinadorSerializer(serializers.ModelSerializer):
-    iduserdetalle = CustomUserSerializer(read_only=True)  # Incluye los detalles del usuario
+    iduser = UserSimpleDetalleSerializer(read_only=True)  # Incluye los detalles del usuario
   
     class Meta:
         model = UserCurso
