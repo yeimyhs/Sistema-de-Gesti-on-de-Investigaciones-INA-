@@ -94,7 +94,7 @@ class CustomUser(AbstractUser):
     apellidos = models.CharField(max_length=128, blank=True, null=True)
     telefono = models.CharField(max_length=255, blank=True, null=True)
     fotoperfil = models.ImageField(upload_to='perfilUsuarioimagen/', blank=True, null=True)
-    eliminado = models.BooleanField(default =1)
+    eliminado = models.BooleanField(default=0)
     
     instituto = models.CharField(max_length=128, blank=True, null=True)
     direccion = models.CharField(max_length=255, blank=True, null=True)
@@ -390,7 +390,7 @@ class Postulante(models.Model):
     ciudad = models.CharField(max_length=255, blank=True, null=True)
     fotoperfil = models.TextField(blank=True, null=True)
     telefono = models.CharField(max_length=255, blank=True, null=True)
-    idproyecto = models.ForeignKey('PostulacionPropuesta', models.DO_NOTHING, db_column='idproyecto', blank=True, null=True)
+    idpostulacionpropuesta = models.ForeignKey('PostulacionPropuesta', models.DO_NOTHING, db_column='idproyecto', blank=True, null=True)
 
     class Meta:
         db_table = 'Postulante'
@@ -508,6 +508,11 @@ class PostulacionPropuesta(models.Model):
     antecedentes = models.TextField()
     cumplimientorequerimientos = models.TextField()
     estado = models.SmallIntegerField()
+    eliminado = models.BooleanField(default=0)
+    aceptado = models.BooleanField(default=0)
+    iduser = models.ForeignKey(settings.AUTH_USER_MODEL, models.DO_NOTHING, db_column='iduser')
+
+
 
     class Meta:
         db_table = 'postulacion_propuesta'

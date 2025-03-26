@@ -527,10 +527,16 @@ class ActividadtecnicaSerializer(ModelSerializer):
 
 
 class PostulacionPropuestaSerializer(ModelSerializer):
-
+    userinscripciondetalle = UserSimpleDetalleSerializer(source='iduser', many=False, required=False)
+    postulantesdatos = serializers.SerializerMethodField()
     class Meta:
         model = PostulacionPropuesta
         fields = '__all__'
+
+    def get_postulantesdatos(self, obj):
+        postulantesdatos = Postulante.objects.filter(idpostulacionpropuesta=obj)
+        return PostulanteSerializer(postulantesdatos, many=True).data
+
 
 
 

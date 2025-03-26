@@ -193,8 +193,8 @@ class PostulanteViewSet(ModelViewSet):
     queryset = Postulante.objects.order_by('pk')
     serializer_class = PostulanteSerializer
     filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend, DateTimeIntervalFilter]
-    filterset_fields = ['iduser', 'eliminado', 'fechacreacion', 'idproyecto', 'idproyecto__titulo']
-    search_fields = ['nombres', 'apellidos', 'email', 'institucion', 'idproyecto__titulo']
+    filterset_fields = ['iduser', 'eliminado', 'fechacreacion', 'idpostulacionpropuesta']
+    search_fields = ['nombres', 'apellidos', 'email', 'institucion']
 
 
 class PresupuestoViewSet(ModelViewSet):
@@ -271,11 +271,11 @@ class ActividadtecnicaViewSet(ModelViewSet):
 
 
 class PostulacionPropuestaViewSet(ModelViewSet):
-    queryset = PostulacionPropuesta.objects.order_by('pk')
+    queryset = PostulacionPropuesta.objects.prefetch_related('postulante_set').order_by('pk')
     serializer_class = PostulacionPropuestaSerializer
     filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend, DateTimeIntervalFilter]
-    filterset_fields = ['idproyecto', 'titulo', 'idproyecto__titulo']
-    search_fields = ['titulo', 'idproyecto__titulo']
+    filterset_fields = ['idproyecto', 'titulo', 'idproyecto__titulo','aceptado','iduser','iduser__nombres','iduser__email','aceptado','practico','rentable','pionero','total']
+    search_fields = ['titulo', 'idproyecto__titulo','iduser__nombres']
 
 class UserCursoViewSet(ModelViewSet):
     queryset = UserCurso.objects.order_by('pk')
