@@ -8,7 +8,32 @@ from django.contrib.auth import authenticate
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
-
+class UserSimpleDetalleSerializer(ModelSerializer):
+    class Meta:
+        #depth = 1
+        model = CustomUser
+        fields = ['eliminado',
+            'id',
+            "nombres",
+            "apellidos",
+            "fechacreacion",
+            "telefono",
+            "fotoperfil",
+            "instituto",
+            "pais",
+            "ciudad",
+            "email",
+            "direccion",
+            
+            "gradoacademico",
+            "zipcode",
+            
+            'email_verified_at',
+            'remember_token',
+            
+            "estado",
+            "plataforma"
+        ]
 class UserCursoSerializer(ModelSerializer):
     curso_titulo = serializers.CharField(source="idcurso.titulo", read_only=True)
     
@@ -85,6 +110,14 @@ class RegisterSerializer(ModelSerializer):
         """ Sobrescribe la creación del usuario para encriptar la contraseña """
         validated_data['password'] = make_password(validated_data['password'])  # Encripta la contraseña
         return super().create(validated_data)
+
+class UserCursoDetalleUserSerializer(ModelSerializer):
+    #curso_titulo = serializers.CharField(source="idcurso.titulo", read_only=True)
+    userdetalle = UserSimpleDetalleSerializer(source='iduser', many=False, required=False)
+    
+    class Meta:
+        model = UserCurso
+        fields = '__all__'
 
 class CustomAuthTokenSerializer(serializers.Serializer):
     email = serializers.CharField(label="Email del usuario")
