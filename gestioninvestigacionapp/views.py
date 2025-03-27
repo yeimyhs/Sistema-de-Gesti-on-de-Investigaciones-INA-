@@ -364,6 +364,62 @@ class UserCursoViewSet(ModelViewSet):
 
         return Response({"message": f"{eliminados} estudiantes desmatriculados exitosamente."}, status=status.HTTP_200_OK)
     
+    @action(detail=False, methods=["patch"])
+    def actualizar_matriculados(self, request):
+        """ Servicio para actualizar la lista de estudiantes matriculados en un curso y devolver la lista actualizada. """
+        data = request.data
+        idcurso = data.get("idcurso")
+        nuevos_idusers = set(data.get("idusers", []))  # Convertir en conjunto para comparación rápida
+
+        # Validar que el curso existe
+        try:
+            curso = Curso.objects.get(pk=idcurso)
+        except Curso.DoesNotExist:
+            return Response({"error": "El curso no existe."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Obtener la lista actual de matriculados en el curso con rol=7
+        matriculados_actuales = UserCurso.objects.filter(idcurso=curso, rol=7)
+        matriculados_ids = {uc.iduser.id for uc in matriculados_actuales}
+
+        # Determinar los usuarios a eliminar (los que están matriculados pero no en la nueva lista)
+        ids_a_eliminar = matriculados_ids - nuevos_idusers
+        # Determinar los usuarios a agregar (los que están en la nueva lista pero no estaban matriculados)
+        ids_a_agregar = nuevos_idusers - matriculados_ids
+
+        # Validar que los usuarios a agregar existan
+        usuarios_a_agregar = CustomUser.objects.filter(id__in=ids_a_agregar)
+        if len(usuarios_a_agregar) != len(ids_a_agregar):
+            return Response({"error": "Uno o más usuarios a agregar no existen."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Transacción para garantizar la consistencia
+        try:
+            with transaction.atomic():
+                # Eliminar los registros de usuarios que ya no deberían estar matriculados
+                UserCurso.objects.filter(idcurso=curso, rol=7, iduser__id__in=ids_a_eliminar).delete()
+
+                # Agregar nuevos usuarios
+                nuevos_registros = [UserCurso(iduser=user, idcurso=curso, rol=7) for user in usuarios_a_agregar]
+                UserCurso.objects.bulk_create(nuevos_registros)
+
+        except Exception as e:
+            return Response({"error": f"Error al actualizar matriculados: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        # Obtener la lista actualizada de matriculados
+        matriculados_actualizados = UserCurso.objects.filter(idcurso=curso, rol=7).select_related('iduser')
+        lista_matriculados = [
+            {
+                "id": uc.iduser.id,
+                "nombre": uc.iduser.nombres,
+                "apellido": uc.iduser.apellidos,
+                "email": uc.iduser.email
+            }
+            for uc in matriculados_actualizados
+        ]
+
+        return Response({
+            "message": "Lista de matriculados actualizada correctamente.",
+            "matriculados": lista_matriculados
+        }, status=status.HTTP_200_OK)
 class CursoDesafioViewSet(ModelViewSet):
     queryset = CursoDesafio.objects.order_by('pk')
     serializer_class = CursoDesafioSerializer
@@ -423,7 +479,7 @@ class UsuarioRolSistemaViewSet(ModelViewSet):
     queryset = UsuarioRolSistema.objects.all()
     filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend, DateTimeIntervalFilter]
     serializer_class = UsuarioRolSistemaSerializer
-    filterset_fields = []
+    filterset_fields = ['iduser','idrol']
     search_fields = ['idrol', 'iduser']
     
     

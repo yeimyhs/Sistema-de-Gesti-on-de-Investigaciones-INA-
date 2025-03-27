@@ -664,6 +664,7 @@ class ubigeoDistritoSerializer(ModelSerializer):
         fields = '__all__'
 
 class UsuarioRolSistemaSerializer(ModelSerializer):
+    userdetalle = UserSimpleDetalleSerializer(source='iduser', many=False, required=False, read_only=True)
 
     class Meta:
         model = UsuarioRolSistema
