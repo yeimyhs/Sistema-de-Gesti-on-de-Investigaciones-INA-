@@ -115,8 +115,6 @@ class CustomUser(AbstractUser):
     email_verified_at = models.DateTimeField(blank=True, null=True)
     remember_token = models.CharField(max_length=100, blank=True, null=True)
 
-
-    plataforma = models.SmallIntegerField()
     estado = models.SmallIntegerField()
 
     # Especificar que el campo para autenticar es `nombreusuario`
@@ -211,18 +209,6 @@ class ArchivoActividades(models.Model):
     class Meta:
         db_table = 'Archivo_actividades'
 
-
-class ArchivoPostulaciones(models.Model):
-    fechacreacion = models.DateTimeField(auto_now_add=True)
-    nombre = models.CharField(max_length=255)
-    ubicacion = models.FileField(upload_to='archivosPostulacion/', blank=True, null=True)
-   
-    eliminado = models.BooleanField(default=0)
-    idarchivo = models.BigAutoField(primary_key=True)
-    idpostulacionpropuesta = models.ForeignKey('PostulacionPropuesta', models.DO_NOTHING, db_column='idproyecto', blank=True, null=True)
-
-    class Meta:
-        db_table = 'Archivo_postulaciones'
 
 
 class DatosTecnicos(models.Model):
@@ -383,6 +369,8 @@ class Postulante(models.Model):
     nombres = models.CharField(max_length=255)
     apellidos = models.CharField(max_length=255)
     email = models.CharField(max_length=255)
+    dni = models.CharField(max_length=255, blank=True, null=True)
+    direccion = models.CharField(max_length=255, blank=True, null=True)
     institucion = models.CharField(max_length=255, blank=True, null=True)
     eliminado = models.BooleanField(default=0)
     pais = models.CharField(max_length=255, blank=True, null=True)
@@ -390,6 +378,7 @@ class Postulante(models.Model):
     fotoperfil = models.TextField(blank=True, null=True)
     telefono = models.CharField(max_length=255, blank=True, null=True)
     idpostulacionpropuesta = models.ForeignKey('PostulacionPropuesta', models.DO_NOTHING, db_column='idproyecto', blank=True, null=True)
+    anexo = models.FileField(upload_to='PostulanteAnexo/', blank=True, null=True)
 
     class Meta:
         db_table = 'Postulante'
@@ -510,6 +499,8 @@ class PostulacionPropuesta(models.Model):
     eliminado = models.BooleanField(default=0)
     aceptado = models.BooleanField(default=0)
     iduser = models.ForeignKey(settings.AUTH_USER_MODEL, models.DO_NOTHING, db_column='iduser')
+    anexo1 = models.FileField(upload_to='PostulacionAnexo/', blank=True, null=True)
+    anexo2 = models.FileField(upload_to='PostulacionAnexo/', blank=True, null=True)
 
 
 

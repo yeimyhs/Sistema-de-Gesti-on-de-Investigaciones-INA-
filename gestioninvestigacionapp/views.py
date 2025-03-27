@@ -1,7 +1,7 @@
 from rest_framework.viewsets import ModelViewSet
-from gestioninvestigacionapp.serializers import ActividadSerializer, ArchivoSerializer, ArchivoActividadesSerializer, ArchivoPostulacionesSerializer, ComponenteSerializer, ConvocatoriaSerializer, CursoSerializer, DepartamentoSerializer, DesafioSerializer, EntregableSerializer, EvaluacionSerializer, NotificcionesSerializer, PlantesisSerializer, PostulanteSerializer, PresupuestoSerializer, ReporteSerializer, RetroalimentacionSerializer, RetroalimentacionacttecnicaSerializer, RubricaSerializer, ActividadcronogramaSerializer, ActividadtecnicaSerializer, PostulacionPropuestaSerializer, UserCursoSerializer, UsuarioDesafioSerializer
+from gestioninvestigacionapp.serializers import ActividadSerializer, ArchivoSerializer, ArchivoActividadesSerializer, ComponenteSerializer, ConvocatoriaSerializer, CursoSerializer, DepartamentoSerializer, DesafioSerializer, EntregableSerializer, EvaluacionSerializer, NotificcionesSerializer, PlantesisSerializer, PostulanteSerializer, PresupuestoSerializer, ReporteSerializer, RetroalimentacionSerializer, RetroalimentacionacttecnicaSerializer, RubricaSerializer, ActividadcronogramaSerializer, ActividadtecnicaSerializer, PostulacionPropuestaSerializer, UserCursoSerializer, UsuarioDesafioSerializer
 from gestioninvestigacionapp.serializers import *
-from gestioninvestigacionapp.models import Actividad, Archivo, ArchivoActividades, ArchivoPostulaciones, Componente, Convocatoria, Curso, Departamento, Desafio, Entregable, Evaluacion, Notificciones, Plantesis, Postulante, Presupuesto, Reporte, Retroalimentacion, Retroalimentacionacttecnica, Rubrica, Actividadcronograma, Actividadtecnica, PostulacionPropuesta, UserCurso, UsuarioDesafio
+from gestioninvestigacionapp.models import Actividad, Archivo, ArchivoActividades, Componente, Convocatoria, Curso, Departamento, Desafio, Entregable, Evaluacion, Notificciones, Plantesis, Postulante, Presupuesto, Reporte, Retroalimentacion, Retroalimentacionacttecnica, Rubrica, Actividadcronograma, Actividadtecnica, PostulacionPropuesta, UserCurso, UsuarioDesafio
 from .models import CustomUser
 from .filters import *
 
@@ -115,12 +115,6 @@ class ArchivoActividadesViewSet(ModelViewSet):
     filterset_fields = ['idarchivo', 'eliminado', 'fechacreacion', 'idactividad', 'idactividad__titulo']
     search_fields = ['nombre', 'idactividad__titulo']
 
-class ArchivoPostulacionesViewSet(ModelViewSet):
-    queryset = ArchivoPostulaciones.objects.order_by('pk')
-    serializer_class = ArchivoPostulacionesSerializer
-    filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend, DateTimeIntervalFilter]
-    filterset_fields = ['idarchivo', 'eliminado', 'fechacreacion', 'idconvocatoria', 'idproyecto', 'idproyecto__titulo']
-    search_fields = ['nombre', 'idproyecto__titulo']
 
 class ComponenteViewSet(ModelViewSet):
     queryset = Componente.objects.order_by('pk')
@@ -338,7 +332,38 @@ class UserCursoViewSet(ModelViewSet):
             return Response({"error": f"Error al matricular: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         return Response({"message": "Estudiantes matriculados exitosamente."}, status=status.HTTP_201_CREATED)
+    @action(detail=False, methods=["post"])
+    def desmatricular_estudiantes(self, request):
+        """ Servicio para desmatricular múltiples estudiantes de un curso. """
+        data = request.data
+        idcurso = data.get("idcurso")
+        idusers = data.get("idusers", [])  # Lista de IDs de usuarios
 
+        # Validar que el curso existe
+        try:
+            curso = Curso.objects.get(pk=idcurso)
+        except Curso.DoesNotExist:
+            return Response({"error": "El curso no existe."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Validar que los usuarios existen
+        usuarios = CustomUser.objects.filter(id__in=idusers)
+        if usuarios.count() != len(idusers):
+            return Response({"error": "Uno o más usuarios no existen."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Intentar eliminar los registros de matrícula
+        try:
+            with transaction.atomic():
+                eliminados, _ = UserCurso.objects.filter(
+                    idcurso=curso, iduser__in=usuarios, rol=7
+                ).delete()
+        except Exception as e:
+            return Response({"error": f"Error al desmatricular: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        if eliminados == 0:
+            return Response({"message": "No se encontraron registros para eliminar."}, status=status.HTTP_404_NOT_FOUND)
+
+        return Response({"message": f"{eliminados} estudiantes desmatriculados exitosamente."}, status=status.HTTP_200_OK)
+    
 class CursoDesafioViewSet(ModelViewSet):
     queryset = CursoDesafio.objects.order_by('pk')
     serializer_class = CursoDesafioSerializer

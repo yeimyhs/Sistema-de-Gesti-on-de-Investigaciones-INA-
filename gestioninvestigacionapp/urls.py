@@ -24,7 +24,6 @@ urlpatterns = [
 router.register(r'actividad', views.ActividadViewSet, 'Actividad')
 router.register(r'archivo', views.ArchivoViewSet, 'Archivo')
 router.register(r'archivoactividades', views.ArchivoActividadesViewSet, 'ArchivoActividades')
-router.register(r'archivopostulaciones', views.ArchivoPostulacionesViewSet, 'ArchivoPostulaciones')
 router.register(r'componente', views.ComponenteViewSet, 'Componente')
 router.register(r'convocatoria', views.ConvocatoriaViewSet, 'Convocatoria')
 router.register(r'curso', views.CursoViewSet, 'Curso')
