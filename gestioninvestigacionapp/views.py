@@ -283,7 +283,7 @@ class UserCursoViewSet(ModelViewSet):
     queryset = UserCurso.objects.order_by('pk')
     serializer_class = UserCursoDetalleUserSerializer
     filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend, DateTimeIntervalFilter]
-    filterset_fields = ['iduser', 'idcurso', 'iduser__nombres', 'idcurso__titulo']
+    filterset_fields = ['iduser', 'idcurso', 'iduser__nombres', 'idcurso__titulo', 'rol']
     search_fields = ['iduser__nombres', 'idcurso__titulo']
     
     def create(self, request, *args, **kwargs):

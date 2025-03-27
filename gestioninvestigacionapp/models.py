@@ -93,6 +93,7 @@ class CustomUser(AbstractUser):
     fechacreacion = models.DateTimeField(auto_now_add=True)
     apellidos = models.CharField(max_length=128, blank=True, null=True)
     telefono = models.CharField(max_length=255, blank=True, null=True)
+    dni = models.CharField(max_length=255, blank=True, null=True)
     fotoperfil = models.ImageField(upload_to='perfilUsuarioimagen/', blank=True, null=True)
     eliminado = models.BooleanField(default=0)
     
