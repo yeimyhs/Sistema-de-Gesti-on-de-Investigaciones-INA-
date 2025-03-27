@@ -619,7 +619,8 @@ class ActividadtecnicaSerializer(ModelSerializer):
 
 
 class PostulacionPropuestaSerializer(ModelSerializer):
-    userinscripciondetalle = UserSimpleDetalleSerializer(source='iduser', many=False, required=False)
+    userinscripciondetalle = UserSimpleDetalleSerializer(source='iduser', many=False, required=False, read_only=True)
+    archivos = ArchivoPostulacionesSerializer(source='archivopostulaciones_set', many=True, read_only=True)
     postulantesdatos = serializers.SerializerMethodField()
     class Meta:
         model = PostulacionPropuesta
@@ -627,8 +628,63 @@ class PostulacionPropuestaSerializer(ModelSerializer):
 
     def get_postulantesdatos(self, obj):
         postulantesdatos = Postulante.objects.filter(idpostulacionpropuesta=obj)
-        return PostulanteSerializer(postulantesdatos, many=True).data
+        return PostulanteSerializer(postulantesdatos, many=True, read_only=True).data
+    def create(self, validated_data):
+        request = self.context['request']
+        archivos_data = self.context['request'].FILES.getlist('archivos')  # Obtiene los archivos enviados
+        postulacion = PostulacionPropuesta.objects.create(**validated_data)  # Crea la convocatoria en la BD
 
+        archivosnombres_data = request.data.get('archivosnombres', '[]')
+        archivosnombres_data = json.loads(request.data.get('archivosnombres', '[]'))  # Asegurar que sea una lista
+
+        for archivo, archivonombre in zip( archivos_data,archivosnombres_data):
+        
+            extension = os.path.splitext(archivo.name)[1]  # Extrae la extensión original (ej: .pdf, .jpg)
+            nuevo_nombre = f"{postulacion.titulo}{extension}"  # Usa el título como nombre del archivo
+
+            # Crear instancia de Archivo con el archivo renombrado
+            archivo_instance = ArchivoPostulaciones(
+                nombre=archivonombre,
+                ubicacion=archivo,  # Guarda el archivo real
+                fechacreacion=now(),
+                
+                idpostulacionpropuesta=postulacion
+            )
+
+            # Renombrar el archivo antes de guardarlo
+            archivo_instance.ubicacion.save(nuevo_nombre, ContentFile(archivo.read()), save=True)
+
+        return postulacion
+    def update(self, instance, validated_data):
+        request = self.context['request']
+        
+        # Obtener archivos enviados y sus nombres
+        archivos_data = request.FILES.getlist('archivos')
+        archivosnombres_data = json.loads(request.data.get('archivosnombres', '[]'))  # Asegurar que sea una lista
+
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+
+        # ✅ Guardar cambios en la instancia antes de manejar archivos
+        instance.save()
+
+        instance.archivo_set.all().delete()
+
+        # 📂 Agregar nuevos archivos con nombres personalizados
+        for archivo, archivonombre in zip(archivos_data, archivosnombres_data):
+            extension = os.path.splitext(archivo.name)[1]  # Extraer la extensión original
+            nuevo_nombre = f"{instance.titulo}{extension}"  # Nombre basado en el título del Desafio
+
+            archivo_instance = ArchivoPostulaciones(
+                nombre=archivonombre,
+                fechacreacion=now(),
+                idpostulacionpropuesta=instance
+            )
+            
+            # 📌 Guardar el archivo en la ubicación correcta
+            archivo_instance.ubicacion.save(nuevo_nombre, ContentFile(archivo.read()), save=True)
+
+        return instance
 
 
 

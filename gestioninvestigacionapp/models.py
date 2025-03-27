@@ -219,8 +219,7 @@ class ArchivoPostulaciones(models.Model):
    
     eliminado = models.BooleanField(default=0)
     idarchivo = models.BigAutoField(primary_key=True)
-    idconvocatoria = models.BigIntegerField(blank=True, null=True)
-    idproyecto = models.ForeignKey('PostulacionPropuesta', models.DO_NOTHING, db_column='idproyecto', blank=True, null=True)
+    idpostulacionpropuesta = models.ForeignKey('PostulacionPropuesta', models.DO_NOTHING, db_column='idproyecto', blank=True, null=True)
 
     class Meta:
         db_table = 'Archivo_postulaciones'
