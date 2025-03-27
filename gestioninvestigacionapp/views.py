@@ -152,7 +152,13 @@ class DepartamentoViewSet(ModelViewSet):
     filterset_fields = ['iddepartamento', 'estado', 'eliminado', 'fechacreacion']
     search_fields = ['nombre', 'lugar', 'email', 'director']
 
-
+    @action(detail=False, methods=['get'], url_path='mis-departamentos/(?P<iduser>\d+)')
+    def mis_departamentos(self, request, iduser=None):
+        """Obtiene los departamentos donde el usuario con iduser es director."""
+        departamentos = Departamento.objects.filter(director=iduser, eliminado=False)
+        serializer = self.get_serializer(departamentos, many=True)
+        return Response(serializer.data)
+    
 class DesafioViewSet(ModelViewSet):
     queryset = Desafio.objects.order_by('pk')
     serializer_class = DesafioSerializer
