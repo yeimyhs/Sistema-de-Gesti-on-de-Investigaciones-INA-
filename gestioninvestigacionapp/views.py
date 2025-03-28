@@ -426,6 +426,23 @@ class UserCursoViewSet(ModelViewSet):
             "message": "Lista de matriculados actualizada correctamente.",
             "matriculados": lista_matriculados
         }, status=status.HTTP_200_OK)
+    
+    def get_serializer_class(self):
+        """Permite cambiar el serializador según la acción."""
+        if self.action == 'cursos_detalle':
+            return UserCursoCursoDetalleSerializer
+        return super().get_serializer_class()
+
+    @action(detail=False, methods=['get'], url_path='cursos-detalle/(?P<iduser>\d+)')
+    def cursos_detalle(self, request, iduser=None):
+        """Obtiene cursos con detalles para un usuario específico con filtros."""
+        queryset = UserCurso.objects.filter(iduser=iduser)
+        
+        # APLICAR FILTROS MANUALMENTE
+        queryset = self.filter_queryset(queryset)
+        
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
 class CursoDesafioViewSet(ModelViewSet):
     queryset = CursoDesafio.objects.order_by('pk')
     serializer_class = CursoDesafioSerializer

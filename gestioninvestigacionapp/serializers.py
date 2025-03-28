@@ -42,6 +42,8 @@ class UserCursoSerializer(ModelSerializer):
         fields = '__all__'
 
 
+
+
 class CustomUserSerializer(ModelSerializer):
     cursos = UserCursoSerializer(source="usercurso_set", many=True, read_only=True)
     roles = serializers.SerializerMethodField()
@@ -687,3 +689,11 @@ class PasswordResetRequestSerializer(serializers.Serializer):
         if not CustomUser.objects.filter(email=value).exists():
             raise serializers.ValidationError("No se encontró un usuario con ese correo.")
         return value
+    
+    
+class UserCursoCursoDetalleSerializer(ModelSerializer):
+    cursodetalle = CursoSerializer(source='idcurso', many=False, required=False, read_only=True)
+    
+    class Meta:
+        model = UserCurso
+        fields = '__all__'
