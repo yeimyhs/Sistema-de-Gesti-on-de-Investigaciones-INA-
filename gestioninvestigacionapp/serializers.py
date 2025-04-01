@@ -697,3 +697,11 @@ class UserCursoCursoDetalleSerializer(ModelSerializer):
     class Meta:
         model = UserCurso
         fields = '__all__'
+
+class UsuarioDesafioDesafioDetalleSerializer(ModelSerializer):
+    desafiodetalle = DesafioSerializer(source='idproyecto', many=False, required=False, read_only=True)
+
+    class Meta:
+        model = UsuarioDesafio
+        fields = '__all__'
+

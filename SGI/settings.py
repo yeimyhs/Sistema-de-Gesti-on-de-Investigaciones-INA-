@@ -192,7 +192,7 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-STATIC_URL = '/static/'
+STATIC_URL = '/ina/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 # Otras configuraciones de archivos estáticos
@@ -202,7 +202,7 @@ STATICFILES_DIRS = [
 
 
 
-MEDIA_URL = '/media/'  # URL pública para acceder a los archivos
+MEDIA_URL = '/ina/media/'  # URL pública para acceder a los archivos
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')  # Ruta donde se guardan los archivos físicamente
 # settings.py
 

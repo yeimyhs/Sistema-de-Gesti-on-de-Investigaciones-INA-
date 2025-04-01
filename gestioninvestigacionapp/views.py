@@ -26,7 +26,18 @@ from rest_framework.decorators import action
 from rest_framework import status
 
 
+from rest_framework import viewsets
 
+class SoftDeleteViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet base que implementa borrado lógico en vez de eliminación real.
+    """
+    def destroy(self, request, *args, **kwargs):
+        """En lugar de eliminar, marca el objeto como eliminado."""
+        instance = self.get_object()
+        instance.delete()
+        return Response({"message": "Registro marcado como eliminado."}, status=status.HTTP_204_NO_CONTENT)
+    
 class RegisterAPI(generics.GenericAPIView):
     serializer_class = RegisterSerializer
     filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend, DateTimeIntervalFilter]
@@ -94,21 +105,21 @@ class LoginView(KnoxLoginView):
             status=status.HTTP_200_OK,
         )
         
-class ActividadViewSet(ModelViewSet):
+class ActividadViewSet(SoftDeleteViewSet):
     queryset = Actividad.objects.order_by('pk')
     serializer_class = ActividadSerializer
     filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend, DateTimeIntervalFilter]
     filterset_fields = ['idactividad', 'tipo', 'fechaentrega', 'fechacreacion', 'eliminado', 'estado', 'idproyecto', 'idproyecto__titulo']
     search_fields = ['titulo', 'descripcion', 'idproyecto__titulo']
     
-class ArchivoViewSet(ModelViewSet):
+class ArchivoViewSet(SoftDeleteViewSet):
     queryset = Archivo.objects.order_by('pk')
     serializer_class = ArchivoSerializer
     filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend, DateTimeIntervalFilter]
     filterset_fields = ['idarchivo', 'eliminado', 'fechacreacion', 'idconvocatoria', 'idconvocatoria__titulo', 'idproyecto', 'idproyecto__titulo']
     search_fields = ['nombre', 'idconvocatoria__titulo', 'idproyecto__titulo']
     
-class ArchivoActividadesViewSet(ModelViewSet):
+class ArchivoActividadesViewSet(SoftDeleteViewSet):
     queryset = ArchivoActividades.objects.order_by('pk')
     serializer_class = ArchivoActividadesSerializer
     filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend, DateTimeIntervalFilter]
@@ -116,14 +127,14 @@ class ArchivoActividadesViewSet(ModelViewSet):
     search_fields = ['nombre', 'idactividad__titulo']
 
 
-class ComponenteViewSet(ModelViewSet):
+class ComponenteViewSet(SoftDeleteViewSet):
     queryset = Componente.objects.order_by('pk')
     serializer_class = ComponenteSerializer
     filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend, DateTimeIntervalFilter]
     filterset_fields = ['idcomponente', 'numero', 'iddatostecnicos', 'iddatostecnicos__descripcion']
     search_fields = ['iddatostecnicos__descripcion']
 
-class DatosTecnicosViewSet(ModelViewSet):
+class DatosTecnicosViewSet(SoftDeleteViewSet):
     queryset = DatosTecnicos.objects.order_by('pk')
     serializer_class = DatosTecnicosSerializer
     filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend, DateTimeIntervalFilter]
@@ -131,21 +142,21 @@ class DatosTecnicosViewSet(ModelViewSet):
     search_fields = ['descripcion']
     
     
-class ConvocatoriaViewSet(ModelViewSet):
+class ConvocatoriaViewSet(SoftDeleteViewSet):
     queryset = Convocatoria.objects.order_by('pk')
     serializer_class = ConvocatoriaSerializer
     filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend, DateTimeIntervalFilter]
     filterset_fields = ['idconvocatoria', 'eliminado', 'estado', 'fechacreacion', 'iddepartamento']
     search_fields = ['titulo', 'descripcion', 'objetivogeneral']
 
-class CursoViewSet(ModelViewSet):
+class CursoViewSet(SoftDeleteViewSet):
     queryset = Curso.objects.order_by('pk')
     serializer_class = CursoSerializer
     filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend, DateTimeIntervalFilter]
     filterset_fields = ['idcurso', 'anioacademico', 'semestre', 'eliminado', 'estado', 'iddepartamento', 'iddepartamento__nombre', "nivel"]
     search_fields = ['titulo', 'iddepartamento__nombre']
 
-class DepartamentoViewSet(ModelViewSet):
+class DepartamentoViewSet(SoftDeleteViewSet):
     queryset = Departamento.objects.order_by('pk')
     serializer_class = DepartamentoSerializer
     filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend, DateTimeIntervalFilter]
@@ -159,7 +170,7 @@ class DepartamentoViewSet(ModelViewSet):
         serializer = self.get_serializer(departamentos, many=True)
         return Response(serializer.data)
     
-class DesafioViewSet(ModelViewSet):
+class DesafioViewSet(SoftDeleteViewSet):
     queryset = Desafio.objects.order_by('pk')
     serializer_class = DesafioSerializer
     filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend, DateTimeIntervalFilter]
@@ -167,21 +178,21 @@ class DesafioViewSet(ModelViewSet):
     search_fields = ['titulo', 'descripcion', 'idconvocatoria__titulo']
 
 
-class EntregableViewSet(ModelViewSet):
+class EntregableViewSet(SoftDeleteViewSet):
     queryset = Entregable.objects.order_by('pk')
     serializer_class = EntregableSerializer
     filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend, DateTimeIntervalFilter]
     filterset_fields = ['idactividadtecnica', 'comentario', 'idactividadtecnica__titulo']
     search_fields = ['comentario', 'idactividadtecnica__titulo']
 
-class EvaluacionViewSet(ModelViewSet):
+class EvaluacionViewSet(SoftDeleteViewSet):
     queryset = Evaluacion.objects.order_by('pk')
     serializer_class = EvaluacionSerializer
     filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend, DateTimeIntervalFilter]
     filterset_fields = ['idevaluacion', 'idplanformacion', 'idplanformacion__titulo']
     search_fields = ['comentario', 'idplanformacion__titulo']
 
-class NotificcionesViewSet(ModelViewSet):
+class NotificcionesViewSet(SoftDeleteViewSet):
     queryset = Notificciones.objects.order_by('pk')
     serializer_class = NotificcionesSerializer
     filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend, DateTimeIntervalFilter]
@@ -189,7 +200,7 @@ class NotificcionesViewSet(ModelViewSet):
     search_fields = ['titulo', 'descripcion']
 
 
-class PlantesisViewSet(ModelViewSet):
+class PlantesisViewSet(SoftDeleteViewSet):
     queryset = Plantesis.objects.order_by('pk')
     serializer_class = PlantesisSerializer
     filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend, DateTimeIntervalFilter]
@@ -197,7 +208,7 @@ class PlantesisViewSet(ModelViewSet):
     search_fields = ['titulo', 'abstract','justificacion']
 
 
-class PostulanteViewSet(ModelViewSet):
+class PostulanteViewSet(SoftDeleteViewSet):
     queryset = Postulante.objects.order_by('pk')
     serializer_class = PostulanteSerializer
     filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend, DateTimeIntervalFilter]
@@ -205,7 +216,7 @@ class PostulanteViewSet(ModelViewSet):
     search_fields = ['nombres', 'apellidos', 'email', 'institucion']
 
 
-class PresupuestoViewSet(ModelViewSet):
+class PresupuestoViewSet(SoftDeleteViewSet):
     queryset = Presupuesto.objects.order_by('pk')
     serializer_class = PresupuestoSerializer
     filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend, DateTimeIntervalFilter]
@@ -213,7 +224,7 @@ class PresupuestoViewSet(ModelViewSet):
     search_fields = ['monto','partida', 'idproyecto__titulo']
 
 
-class ReporteViewSet(ModelViewSet):
+class ReporteViewSet(SoftDeleteViewSet):
     queryset = Reporte.objects.order_by('pk')
     serializer_class = ReporteSerializer
     filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend, DateTimeIntervalFilter]
@@ -222,7 +233,7 @@ class ReporteViewSet(ModelViewSet):
 
 
 
-class RetroalimentacionViewSet(ModelViewSet):
+class RetroalimentacionViewSet(SoftDeleteViewSet):
     queryset = Retroalimentacion.objects.order_by('pk')
     serializer_class = RetroalimentacionSerializer
     filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend, DateTimeIntervalFilter]
@@ -230,28 +241,28 @@ class RetroalimentacionViewSet(ModelViewSet):
     search_fields = ['comentario']
 
 
-class RetroalimentacionacttecnicaViewSet(ModelViewSet):
+class RetroalimentacionacttecnicaViewSet(SoftDeleteViewSet):
     queryset = Retroalimentacionacttecnica.objects.order_by('pk')
     serializer_class = RetroalimentacionacttecnicaSerializer
     filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend, DateTimeIntervalFilter]
     filterset_fields = ['identregable', 'comentario']
     search_fields = ['comentario']
 
-class RubricaViewSet(ModelViewSet):
+class RubricaViewSet(SoftDeleteViewSet):
     queryset = Rubrica.objects.order_by('pk')
     serializer_class = RubricaSerializer
     filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend, DateTimeIntervalFilter]
     filterset_fields = ['descripcion']
     search_fields = ['descripcion']
     
-class CriterioViewSet(ModelViewSet):
+class CriterioViewSet(SoftDeleteViewSet):
     queryset = Criterio.objects.order_by('pk')
     serializer_class = CriterioSerializer
     filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend, DateTimeIntervalFilter]
     filterset_fields = ['titulo','descripcion',"peso",'puntaje','idrubrica'  ]
     search_fields = ['titulo','descripcion',"peso",'puntaje' ]
 
-class UserViewSet(ModelViewSet):
+class UserViewSet(SoftDeleteViewSet):
     queryset = CustomUser.objects.prefetch_related('usuariorolsistema_set__idrol').all().order_by('pk')
     serializer_class = CustomUserSerializer
     filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend, DateTimeIntervalFilter]
@@ -261,14 +272,14 @@ class UserViewSet(ModelViewSet):
         'nombres', 'apellidos', 'telefono', 
         'instituto', 'pais', 'ciudad', 'email'
     ]
-class ActividadcronogramaViewSet(ModelViewSet):
+class ActividadcronogramaViewSet(SoftDeleteViewSet):
     queryset = Actividadcronograma.objects.order_by('pk')
     serializer_class = ActividadcronogramaSerializer
     filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend, DateTimeIntervalFilter]
     filterset_fields = ['titulo', 'eliminado', 'fechacreacion']
     search_fields = ['titulo']
 
-class ActividadtecnicaViewSet(ModelViewSet):
+class ActividadtecnicaViewSet(SoftDeleteViewSet):
     queryset = Actividadtecnica.objects.order_by('pk')
     serializer_class = ActividadtecnicaSerializer
     filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend, DateTimeIntervalFilter]
@@ -278,14 +289,14 @@ class ActividadtecnicaViewSet(ModelViewSet):
 
 
 
-class PostulacionPropuestaViewSet(ModelViewSet):
+class PostulacionPropuestaViewSet(SoftDeleteViewSet):
     queryset = PostulacionPropuesta.objects.prefetch_related("idproyecto__idconvocatoria", "iduser",'postulante_set').order_by('pk')
     serializer_class = PostulacionPropuestaSerializer
     filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend, DateTimeIntervalFilter]
     filterset_fields = ['idproyecto', 'titulo', 'idproyecto__titulo','aceptado','iduser','iduser__nombres','iduser__email','aceptado','practico','rentable','pionero','total','idproyecto__idconvocatoria']
     search_fields = ['titulo', 'idproyecto__titulo','iduser__nombres']
 
-class UserCursoViewSet(ModelViewSet):
+class UserCursoViewSet(SoftDeleteViewSet):
     queryset = UserCurso.objects.order_by('pk')
     serializer_class = UserCursoDetalleUserSerializer
     filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend, DateTimeIntervalFilter]
@@ -443,22 +454,38 @@ class UserCursoViewSet(ModelViewSet):
         
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
-class CursoDesafioViewSet(ModelViewSet):
+class CursoDesafioViewSet(SoftDeleteViewSet):
     queryset = CursoDesafio.objects.order_by('pk')
     serializer_class = CursoDesafioSerializer
     filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend, DateTimeIntervalFilter]
     filterset_fields = ['idproyecto', 'idcurso', 'iddatostecnicos','idplanformacion', 'idcurso__titulo']
     search_fields = ['idproyecto__titulo', 'idcurso__titulo']
 
-class UsuarioDesafioViewSet(ModelViewSet):
+class UsuarioDesafioViewSet(SoftDeleteViewSet):
     queryset = UsuarioDesafio.objects.order_by('pk')
     serializer_class = UsuarioDesafioSerializer
     filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend, DateTimeIntervalFilter]
     filterset_fields = ['iduser', 'idproyecto', 'iduser_id__nombres', 'idproyecto__titulo']
     search_fields = ['iduser__nombres', 'idproyecto__titulo']
+
+    def get_serializer_class(self):
+        """Permite cambiar el serializador según la acción."""
+        if self.action == 'desafio_detalle':
+            return UsuarioDesafioDesafioDetalleSerializer
+        return super().get_serializer_class()
+
+    @action(detail=False, methods=['get'], url_path='desafio_detalle/(?P<iduser>\d+)')
+    def desafio_detalle(self, request, iduser=None):
+        """Obtiene cursos con detalles para un usuario específico con filtros."""
+        queryset = UsuarioDesafio.objects.filter(iduser=iduser)
+        
+        # APLICAR FILTROS MANUALMENTE
+        queryset = self.filter_queryset(queryset)
+        
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data) 
     
-    
-class EstadoViewSet(ModelViewSet):
+class EstadoViewSet(SoftDeleteViewSet):
     queryset = Estado.objects.order_by('pk')
     serializer_class = EstadoSerializer
     filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend, DateTimeIntervalFilter]
@@ -466,7 +493,7 @@ class EstadoViewSet(ModelViewSet):
     search_fields = ['valor', 'clave', 'descripcion', 'identificador_tabla', 'nombre_tabla']
     
     
-class ubigeoPaisViewSet(ModelViewSet):
+class ubigeoPaisViewSet(SoftDeleteViewSet):
     queryset = ubigeoPais.objects.order_by('pk')
     serializer_class = ubigeoPaisSerializer
     filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend, DateTimeIntervalFilter]
@@ -475,7 +502,7 @@ class ubigeoPaisViewSet(ModelViewSet):
 
 
 
-class ubigeoDepartamentoViewSet(ModelViewSet):
+class ubigeoDepartamentoViewSet(SoftDeleteViewSet):
     queryset = ubigeoDepartamento.objects.order_by('pk')
     serializer_class = ubigeoDepartamentoSerializer
     filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend, DateTimeIntervalFilter]
@@ -483,7 +510,7 @@ class ubigeoDepartamentoViewSet(ModelViewSet):
     search_fields = ['nombre']
 
 
-class ubigeoProvinciaViewSet(ModelViewSet):
+class ubigeoProvinciaViewSet(SoftDeleteViewSet):
     queryset = ubigeoProvincia.objects.order_by('pk')
     serializer_class = ubigeoProvinciaSerializer
     filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend, DateTimeIntervalFilter]
@@ -491,14 +518,14 @@ class ubigeoProvinciaViewSet(ModelViewSet):
     search_fields = ['nombre']
 
 
-class ubigeoDistritoViewSet(ModelViewSet):
+class ubigeoDistritoViewSet(SoftDeleteViewSet):
     queryset = ubigeoDistrito.objects.order_by('pk')
     serializer_class = ubigeoDistritoSerializer
     filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend, DateTimeIntervalFilter]
     filterset_fields = ['idciudad', 'nombre', 'idprovincia']
     search_fields = ['nombre']
 
-class UsuarioRolSistemaViewSet(ModelViewSet):
+class UsuarioRolSistemaViewSet(SoftDeleteViewSet):
     queryset = UsuarioRolSistema.objects.all()
     filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend, DateTimeIntervalFilter]
     serializer_class = UsuarioRolSistemaSerializer
@@ -507,7 +534,7 @@ class UsuarioRolSistemaViewSet(ModelViewSet):
     
     
 
-class RolViewSet(ModelViewSet):
+class RolViewSet(SoftDeleteViewSet):
     """
     API para gestionar los roles en el sistema.
     """
