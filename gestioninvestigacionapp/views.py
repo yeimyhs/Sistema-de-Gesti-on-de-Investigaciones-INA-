@@ -105,6 +105,14 @@ class LoginView(KnoxLoginView):
             status=status.HTTP_200_OK,
         )
         
+class ConfiguracionViewSet(SoftDeleteViewSet):
+    queryset = Configuracion.objects.order_by('pk')
+    serializer_class = ConfiguracionSerializer
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend, DateTimeIntervalFilter]
+    filterset_fields = ['email', 'telefono', 'direccion']
+    search_fields = ['email', 'telefono', 'direccion']
+  
+  
 class ActividadViewSet(SoftDeleteViewSet):
     queryset = Actividad.objects.order_by('pk')
     serializer_class = ActividadSerializer

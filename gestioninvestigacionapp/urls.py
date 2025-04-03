@@ -21,6 +21,7 @@ urlpatterns = [
    
 ]
 
+router.register(r'configuracion', views.ConfiguracionViewSet, 'Configuracion')
 router.register(r'actividad', views.ActividadViewSet, 'Actividad')
 router.register(r'archivo', views.ArchivoViewSet, 'Archivo')
 router.register(r'archivoactividades', views.ArchivoActividadesViewSet, 'ArchivoActividades')

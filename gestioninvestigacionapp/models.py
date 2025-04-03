@@ -166,6 +166,16 @@ class CustomUser(AbstractUser):
         return f"{self.nombres} {self.apellidos or ''}".strip()
 
 
+class Configuracion(SoftDeleteModel):
+    id = models.BigAutoField(primary_key=True)
+    email = models.EmailField(blank=True, null=True, verbose_name="Correo Electrónico")
+    telefono = models.CharField(blank=True, null=True, max_length=20, verbose_name="Celular o Teléfono")
+    url = models.TextField(blank=True, null=True)
+    direccion = models.TextField(blank=True, null=True)
+
+    class Meta:
+        db_table = 'Configuracion'
+
 
 class ubigeoPais(SoftDeleteModel):
     idpais = models.CharField(max_length=255,primary_key=True)

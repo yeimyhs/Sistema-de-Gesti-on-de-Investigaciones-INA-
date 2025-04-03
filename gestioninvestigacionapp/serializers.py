@@ -275,6 +275,16 @@ class ActividadSerializer(ModelSerializer):
 
         return instance
 
+
+
+class ConfiguracionSerializer(ModelSerializer):
+
+    class Meta:
+        model = Configuracion
+        fields = '__all__'
+
+
+
 class ArchivoSerializer(ModelSerializer):
 
     class Meta:
