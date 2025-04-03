@@ -129,6 +129,7 @@ REST_KNOX = {
 
 DATETIME_FORMAT = 'Y-m-d H:i' 
 
+CORS_ALLOW_ALL_ORIGINS = True
 
 
 CORS_ALLOW_METHODS = [
@@ -192,7 +193,7 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-STATIC_URL = '/ina/static/'
+STATIC_URL = os.getenv('STATIC_URL') #'/ina/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 # Otras configuraciones de archivos estáticos
@@ -202,7 +203,7 @@ STATICFILES_DIRS = [
 
 
 
-MEDIA_URL = '/ina/media/'  # URL pública para acceder a los archivos
+MEDIA_URL = os.getenv('MEDIA_URL') #"https://eventosdiee.ucsp.edu.pe:8443/ina/media/" #'/ina/media/'  # URL pública para acceder a los archivos
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')  # Ruta donde se guardan los archivos físicamente
 # settings.py
 
