@@ -424,7 +424,7 @@ class ConvocatoriaSerializer(ModelSerializer):
 
         for archivo, archivonombre in zip( archivos_data,archivosnombres_data):
             extension = os.path.splitext(archivo.name)[1]  # Extrae la extensión original (ej: .pdf, .jpg)
-            nuevo_nombre = f"{convocatoria.titulo}"  # Usa el título como nombre del archivo
+            nuevo_nombre = f"{convocatoria.titulo}{extension}"  # Usa el título como nombre del archivo
 
             # Crear instancia de Archivo con el archivo renombrado
             archivo_instance = Archivo(
