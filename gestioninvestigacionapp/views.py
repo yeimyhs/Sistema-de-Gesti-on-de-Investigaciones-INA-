@@ -47,9 +47,11 @@ class RegisterAPI(generics.GenericAPIView):
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
 
+        user_data = serializer.data
+        user_data['id'] = user.pk  # Agregar el id al nivel de los datos del usuario
+
         return Response({
-            "user": serializer.data,
-            
+            "user": user_data,  # Ahora incluye el id en el mismo nivel que el resto de datos del usuario
             "token": AuthToken.objects.create(user)[1]
         })
         
@@ -228,8 +230,8 @@ class PresupuestoViewSet(SoftDeleteViewSet):
     queryset = Presupuesto.objects.order_by('pk')
     serializer_class = PresupuestoSerializer
     filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend, DateTimeIntervalFilter]
-    filterset_fields = ['idpresupuesto', 'idproyecto', 'idproyecto__titulo','monto','partida']
-    search_fields = ['monto','partida', 'idproyecto__titulo']
+    filterset_fields = ['idpresupuesto', 'idpostulacionpropuesta','monto','partida']
+    search_fields = ['monto','partida']
 
 
 class ReporteViewSet(SoftDeleteViewSet):
@@ -303,7 +305,18 @@ class PostulacionPropuestaViewSet(SoftDeleteViewSet):
     filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend, DateTimeIntervalFilter]
     filterset_fields = ['idproyecto', 'titulo', 'idproyecto__titulo','aceptado','iduser','iduser__nombres','iduser__email','aceptado','practico','rentable','pionero','total','idproyecto__idconvocatoria']
     search_fields = ['titulo', 'idproyecto__titulo','iduser__nombres']
+    @action(detail=False, methods=['get'], url_path='detalle-convocatoria-listado')
+    def detalle_convocatoria(self, request):
+        queryset = self.filter_queryset(self.get_queryset())
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = PostulacionPropuestaConvocatoriaDetalleSerializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        
+        serializer = PostulacionPropuestaConvocatoriaDetalleSerializer(queryset, many=True)
+        return Response(serializer.data)
 
+    
 class UserCursoViewSet(SoftDeleteViewSet):
     queryset = UserCurso.objects.order_by('pk')
     serializer_class = UserCursoDetalleUserSerializer
@@ -327,7 +340,7 @@ class UserCursoViewSet(SoftDeleteViewSet):
 
         return response
     
-    @action(detail=False, methods=["post"])
+    @action(detail=False, methods=["post"], url_path="matricular_estudiantes")
     def matricular_estudiantes(self, request):
         """ Servicio para matricular múltiples estudiantes en un curso. """
         data = request.data
@@ -345,6 +358,13 @@ class UserCursoViewSet(SoftDeleteViewSet):
         if usuarios.count() != len(idusers):
             return Response({"error": "Uno o más usuarios no existen."}, status=status.HTTP_400_BAD_REQUEST)
 
+        # Verificar que los estudiantes no estén ya matriculados en el curso
+        matriculados = UserCurso.objects.filter(idcurso=curso, iduser__in=idusers)
+        matriculados_ids = {uc.iduser.id for uc in matriculados}
+
+        if len(matriculados_ids) > 0:
+            return Response({"error": f"Los siguientes usuarios ya están matriculados: {', '.join(map(str, matriculados_ids))}"}, status=status.HTTP_400_BAD_REQUEST)
+
         # Transacción para garantizar que todas las inserciones sean atómicas
         try:
             with transaction.atomic():
@@ -357,7 +377,9 @@ class UserCursoViewSet(SoftDeleteViewSet):
             return Response({"error": f"Error al matricular: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         return Response({"message": "Estudiantes matriculados exitosamente."}, status=status.HTTP_201_CREATED)
-    @action(detail=False, methods=["post"])
+    
+    
+    @action(detail=False, methods=["post"], url_path="desmatricular_estudiantes")
     def desmatricular_estudiantes(self, request):
         """ Servicio para desmatricular múltiples estudiantes de un curso. """
         data = request.data
@@ -373,7 +395,7 @@ class UserCursoViewSet(SoftDeleteViewSet):
         # Validar que los usuarios existen
         usuarios = CustomUser.objects.filter(id__in=idusers)
         if usuarios.count() != len(idusers):
-            return Response({"error": "Uno o más usuarios no existen."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": "Uno o varios usuarios no existen."}, status=status.HTTP_400_BAD_REQUEST)
 
         # Intentar eliminar los registros de matrícula
         try:
@@ -389,12 +411,14 @@ class UserCursoViewSet(SoftDeleteViewSet):
 
         return Response({"message": f"{eliminados} estudiantes desmatriculados exitosamente."}, status=status.HTTP_200_OK)
     
-    @action(detail=False, methods=["patch"])
+    @action(detail=False, methods=["patch"], url_path="actualizar_matriculados")
     def actualizar_matriculados(self, request):
-        """ Servicio para actualizar la lista de estudiantes matriculados en un curso y devolver la lista actualizada. """
+
+        """ Servicio para actualizar la lista de estudiantes matriculados en un curso y los desafíos asociados """
         data = request.data
         idcurso = data.get("idcurso")
-        nuevos_idusers = set(data.get("idusers", []))  # Convertir en conjunto para comparación rápida
+        nuevos_idusers = set(data.get("idusers", []))  # Matricular los usuarios
+        nuevos_desafios_ids = set(data.get("desafios_ids", []))  # Nuevos desafíos para el curso
 
         # Validar que el curso existe
         try:
@@ -402,13 +426,11 @@ class UserCursoViewSet(SoftDeleteViewSet):
         except Curso.DoesNotExist:
             return Response({"error": "El curso no existe."}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Obtener la lista actual de matriculados en el curso con rol=7
+        # Actualización de matrícula de estudiantes
         matriculados_actuales = UserCurso.objects.filter(idcurso=curso, rol=7)
         matriculados_ids = {uc.iduser.id for uc in matriculados_actuales}
 
-        # Determinar los usuarios a eliminar (los que están matriculados pero no en la nueva lista)
         ids_a_eliminar = matriculados_ids - nuevos_idusers
-        # Determinar los usuarios a agregar (los que están en la nueva lista pero no estaban matriculados)
         ids_a_agregar = nuevos_idusers - matriculados_ids
 
         # Validar que los usuarios a agregar existan
@@ -416,7 +438,7 @@ class UserCursoViewSet(SoftDeleteViewSet):
         if len(usuarios_a_agregar) != len(ids_a_agregar):
             return Response({"error": "Uno o más usuarios a agregar no existen."}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Transacción para garantizar la consistencia
+        # Actualizar matrícula de estudiantes
         try:
             with transaction.atomic():
                 # Eliminar los registros de usuarios que ya no deberían estar matriculados
@@ -428,6 +450,28 @@ class UserCursoViewSet(SoftDeleteViewSet):
 
         except Exception as e:
             return Response({"error": f"Error al actualizar matriculados: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        # Actualización de desafíos asociados al curso
+        desafios_actuales = CursoDesafio.objects.filter(idcurso=curso).values_list('idproyecto', flat=True)
+        desafios_actuales_ids = set(desafios_actuales)
+
+        # Determinar los desafíos a eliminar (los que están asociados pero no están en la nueva lista)
+        desafios_a_eliminar = desafios_actuales_ids - nuevos_desafios_ids
+        # Determinar los desafíos a agregar (los que están en la nueva lista pero no estaban asociados)
+        desafios_a_agregar = nuevos_desafios_ids - desafios_actuales_ids
+
+        # Actualizar desafíos asociados al curso
+        try:
+            with transaction.atomic():
+                # Eliminar los registros de desafíos que ya no deberían estar asociados
+                CursoDesafio.objects.filter(idcurso=curso, idproyecto__in=desafios_a_eliminar).delete()
+
+                # Agregar nuevos desafíos
+                nuevos_registros_desafios = [CursoDesafio(idcurso=curso, idproyecto=Desafio.objects.get(id=id)) for id in desafios_a_agregar]
+                CursoDesafio.objects.bulk_create(nuevos_registros_desafios)
+
+        except Exception as e:
+            return Response({"error": f"Error al actualizar desafíos: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         # Obtener la lista actualizada de matriculados
         matriculados_actualizados = UserCurso.objects.filter(idcurso=curso, rol=7).select_related('iduser')
@@ -441,18 +485,32 @@ class UserCursoViewSet(SoftDeleteViewSet):
             for uc in matriculados_actualizados
         ]
 
+        # Obtener la lista actualizada de desafíos asociados al curso
+        desafios_actualizados = CursoDesafio.objects.filter(idcurso=curso).select_related('idproyecto')
+        lista_desafios = [
+            {
+                "id": cd.idproyecto.id,
+                "titulo": cd.idproyecto.titulo
+            }
+            for cd in desafios_actualizados
+        ]
+
         return Response({
-            "message": "Lista de matriculados actualizada correctamente.",
-            "matriculados": lista_matriculados
+            "message": "Matrícula y desafíos actualizados correctamente.",
+            "matriculados": lista_matriculados,
+            "desafios": lista_desafios
         }, status=status.HTTP_200_OK)
-    
+        
+        
     def get_serializer_class(self):
         """Permite cambiar el serializador según la acción."""
         if self.action == 'cursos_detalle':
             return UserCursoCursoDetalleSerializer
+        elif self.action == 'detallecompleto':
+            return UserCursoFulldetalleSerializer
         return super().get_serializer_class()
 
-    @action(detail=False, methods=['get'], url_path='cursos-detalle/(?P<iduser>\d+)')
+    @action(detail=False, methods=['get'], url_path='detallecursos/(?P<iduser>\d+)')
     def cursos_detalle(self, request, iduser=None):
         """Obtiene cursos con detalles para un usuario específico con filtros."""
         queryset = UserCurso.objects.filter(iduser=iduser)
@@ -462,13 +520,51 @@ class UserCursoViewSet(SoftDeleteViewSet):
         
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
+    
+    @action(detail=False, methods=['get'], url_path='detallecompleto')
+    def detallecompleto(self, request):
+        queryset = UserCurso.objects.select_related('iduser', 'idcurso').all()
+
+        # 💡 Limpieza de parámetros vacíos
+        query_params = {k: v for k, v in request.GET.items() if v}
+
+        # ⚙️ Clonamos request con los parámetros limpios
+        request._request.GET = query_params  # Esto es un truco para filtros personalizados
+
+        # 🔍 Aplicamos filtros
+        for backend in (DjangoFilterBackend(), filters.SearchFilter(), filters.OrderingFilter()):
+            queryset = backend.filter_queryset(request, queryset, self)
+
+        # Paginación y serialización
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = UserCursoFulldetalleSerializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = UserCursoFulldetalleSerializer(queryset, many=True)
+        return Response(serializer.data)
+from django_filters.rest_framework import DjangoFilterBackend, FilterSet
+from django_filters import filters as django_filters
+from rest_framework import filters
+
+# Define un filtro personalizado
+class CursoDesafioFilter(FilterSet):
+    idcurso__in = django_filters.BaseInFilter(field_name='idcurso')
+    
+    class Meta:
+        model = CursoDesafio
+        fields = ['idproyecto', 'idcurso', 'iddatostecnicos', 'idplanformacion', 'idcurso__titulo']
+
 class CursoDesafioViewSet(SoftDeleteViewSet):
     queryset = CursoDesafio.objects.order_by('pk')
     serializer_class = CursoDesafioSerializer
     filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend, DateTimeIntervalFilter]
-    filterset_fields = ['idproyecto', 'idcurso', 'iddatostecnicos','idplanformacion', 'idcurso__titulo']
+    filterset_class = CursoDesafioFilter  # Usar la clase de filtro personalizada
     search_fields = ['idproyecto__titulo', 'idcurso__titulo']
-
+    
+    
+    
+    
 class UsuarioDesafioViewSet(SoftDeleteViewSet):
     queryset = UsuarioDesafio.objects.order_by('pk')
     serializer_class = UsuarioDesafioSerializer
@@ -533,12 +629,81 @@ class ubigeoDistritoViewSet(SoftDeleteViewSet):
     filterset_fields = ['idciudad', 'nombre', 'idprovincia']
     search_fields = ['nombre']
 
+from django.db.models import Count, Min
+
 class UsuarioRolSistemaViewSet(SoftDeleteViewSet):
     queryset = UsuarioRolSistema.objects.all()
     filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend, DateTimeIntervalFilter]
     serializer_class = UsuarioRolSistemaSerializer
     filterset_fields = ['iduser','idrol']
     search_fields = ['idrol', 'iduser']
+    
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        
+        # Verificar si se solicita filtrar combinaciones únicas
+        unique = self.request.query_params.get('unique', None)
+        
+        if unique and unique.lower() == 'true':
+            # Obtener solo las primeras ocurrencias de cada combinación iduser-idrol
+            unique_combinations = {}
+            
+            # Aplicamos los filtros primero para respetar otros parámetros de consulta
+            filtered_queryset = self.filter_queryset(queryset)
+            
+            # Usamos un conjunto para rastrear combinaciones ya vistas
+            seen_combinations = set()
+            ids_to_keep = []
+            
+            for item in filtered_queryset:
+                # Creamos una clave única para la combinación
+                combo_key = (str(item.iduser_id), str(item.idrol_id))
+                
+                if combo_key not in seen_combinations:
+                    seen_combinations.add(combo_key)
+                    ids_to_keep.append(item.id)
+            
+            # Filtramos el queryset original con los IDs a mantener
+            return UsuarioRolSistema.objects.filter(id__in=ids_to_keep)
+            
+        return queryset
+    
+    @action(detail=False, methods=['get'])
+    def unique_combinations(self, request):
+        """Endpoint para obtener solo registros con combinaciones únicas de usuario y rol"""
+        queryset = self.get_queryset()
+        # Aplicamos los filtros normales
+        queryset = self.filter_queryset(queryset)
+        
+        # Identificamos combinaciones únicas y nos quedamos con el ID menor de cada una
+        unique_ids = queryset.values('iduser', 'idrol').annotate(min_id=Min('id')).values_list('min_id', flat=True)
+        
+        # Filtramos el queryset para incluir solo estos IDs
+        filtered_queryset = UsuarioRolSistema.objects.filter(id__in=unique_ids)
+        
+        # Serializamos y devolvemos el resultado
+        page = self.paginate_queryset(filtered_queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+            
+        serializer = self.get_serializer(filtered_queryset, many=True)
+        return Response(serializer.data)
+    
+class EmpresaViewSet(SoftDeleteViewSet):
+    queryset = Empresa.objects.all()
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend, DateTimeIntervalFilter]
+    serializer_class = EmpresaSerializer
+    filterset_fields = ['descripcion','nombre', 'publico', 'estado']
+    search_fields = ['descripcion','nombre', 'publico', 'estado']
+    
+    
+class HistoriaexitoViewSet(SoftDeleteViewSet):
+    queryset = Historiaexito.objects.all()
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend, DateTimeIntervalFilter]
+    serializer_class = HistoriaexitoSerializer
+    filterset_fields = ['historia','nombre', 'cargo', 'estado']
+    search_fields = ['historia','nombre', 'cargo', 'estado']
     
     
 

@@ -56,6 +56,8 @@ router.register(r'usuariorolsistema', views.UsuarioRolSistemaViewSet, "UsuarioRo
 router.register(r'criterio', views.CriterioViewSet, "criterio")
 router.register(r'datostecnicos', views.DatosTecnicosViewSet, "datostecnicos")
 router.register(r'cursodesafio', views.CursoDesafioViewSet, "cursodesafio")
+router.register(r'empresa', views.EmpresaViewSet, "empresa")
+router.register(r'historiaexito', views.HistoriaexitoViewSet, "historiaexito")
 
 urlpatterns = urlpatterns +  router.urls
 if settings.DEBUG:

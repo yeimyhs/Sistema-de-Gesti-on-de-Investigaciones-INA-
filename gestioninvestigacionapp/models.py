@@ -421,9 +421,9 @@ class Postulante(SoftDeleteModel):
 
 class Presupuesto(SoftDeleteModel):
     fechacreacion = models.DateTimeField(auto_now_add=True)
-    idproyecto = models.ForeignKey(Desafio, models.DO_NOTHING, db_column='idproyecto', blank=True, null=True)
     partida = models.CharField(max_length=255)
     monto = models.FloatField()
+    idpostulacionpropuesta = models.ForeignKey('PostulacionPropuesta', models.DO_NOTHING, blank=True, null=True)
     idpresupuesto = models.BigAutoField(primary_key=True)
 
     class Meta:
@@ -497,7 +497,7 @@ class Actividadcronograma(SoftDeleteModel):
 
 class Actividadtecnica(SoftDeleteModel):
     fechacreacion = models.DateTimeField(auto_now_add=True)
-    idactividadtecnica = models.BigIntegerField(db_column='idactividadTecnica', primary_key=True)  # Field name made lowercase.
+    idactividadtecnica = models.BigAutoField(db_column='idactividadTecnica', primary_key=True)  # Field name made lowercase.
     tipo = models.BigIntegerField(blank=True, null=True)
     idcomponente = models.ForeignKey(Componente, models.DO_NOTHING, db_column='idcomponente')
     estado = models.IntegerField()
@@ -510,6 +510,32 @@ class Actividadtecnica(SoftDeleteModel):
 
 
 
+class Historiaexito(SoftDeleteModel):
+    fechacreacion = models.DateTimeField(auto_now_add=True)
+    idhistoriaexito = models.BigAutoField(db_column='idhistoriaexito', primary_key=True)  # Field name made lowercase.
+    imagen = models.ImageField(upload_to='historiaexitoimagen/', blank=True, null=True)
+    historia = models.TextField( blank=True, null=True)
+    nombre = models.CharField(max_length=255)
+    cargo = models.CharField(max_length=255)
+    estado = models.IntegerField()
+
+    class Meta:
+        db_table = 'HistoriaExito'
+
+
+class Empresa(SoftDeleteModel):
+    fechacreacion = models.DateTimeField(auto_now_add=True)
+    idempresa = models.BigAutoField(db_column='idempresa', primary_key=True)  # Field name made lowercase.
+    imagen = models.ImageField(upload_to='empresaimagen/', blank=True, null=True)
+    descripcion = models.TextField( blank=True, null=True)
+    nombre = models.CharField(max_length=255)
+    estado = models.IntegerField()
+    publico = models.IntegerField()
+
+    class Meta:
+        db_table = 'Empresa'
+
+
 
 
 class PostulacionPropuesta(SoftDeleteModel):
@@ -517,8 +543,8 @@ class PostulacionPropuesta(SoftDeleteModel):
     
     fechacreacion = models.DateTimeField(auto_now_add=True)
     idproyecto = models.ForeignKey(Desafio, models.DO_NOTHING, db_column='idproyecto')
-    detallepropuesta = models.TextField()
-    titulo = models.TextField()
+    detallepropuesta = models.TextField(blank=True, null=True)
+    titulo = models.TextField(blank=True, null=True)
     practico = models.FloatField(blank=True, null=True)
     rentable = models.FloatField(blank=True, null=True)
     pionero = models.FloatField(blank=True, null=True)
@@ -526,8 +552,8 @@ class PostulacionPropuesta(SoftDeleteModel):
     practicocomentario = models.TextField(blank=True, null=True)
     rentrablecomentario = models.TextField(blank=True, null=True)
     pionerocomentario = models.TextField(blank=True, null=True)
-    antecedentes = models.TextField()
-    cumplimientorequerimientos = models.TextField()
+    antecedentes = models.TextField(blank=True, null=True)
+    cumplimientorequerimientos = models.TextField(blank=True, null=True)
     estado = models.SmallIntegerField()
     aceptado = models.BooleanField(default=0)
     iduser = models.ForeignKey(settings.AUTH_USER_MODEL, models.DO_NOTHING, db_column='iduser')

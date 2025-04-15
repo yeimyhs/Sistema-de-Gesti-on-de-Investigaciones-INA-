@@ -34,8 +34,26 @@ class UserSimpleDetalleSerializer(ModelSerializer):
             
             "estado"
         ]
+
+class OnlyCursoSerializer(ModelSerializer):
+
+    class Meta:
+        model = Curso
+        fields = '__all__'
+        
+        
+
 class UserCursoSerializer(ModelSerializer):
     curso_titulo = serializers.CharField(source="idcurso.titulo", read_only=True)
+    
+    class Meta:
+        model = UserCurso
+        fields = '__all__'
+
+
+class UserCursoFulldetalleSerializer(ModelSerializer):
+    iduser = UserSimpleDetalleSerializer(read_only=True)  # Incluye los detalles del usuario
+    idcurso = OnlyCursoSerializer(read_only=True)
     
     class Meta:
         model = UserCurso
@@ -316,9 +334,29 @@ class ActividadcronogramaSerializer(ModelSerializer):
         fields = '__all__'
 
 
+class DepartamentoSerializer(ModelSerializer):
+    directordetalle = UserSimpleDetalleSerializer(source='director',read_only=True)
 
+    class Meta:
+        model = Departamento
+        fields = '__all__'
+
+class ConvocatoriaOnlyDepSerializer(ModelSerializer):
+    departamentodetalle = DepartamentoSerializer(source='iddepartamento', many=False, required=False)
+    class Meta:
+        model = Convocatoria
+        fields = '__all__'
+
+class OnlyDesafioSerializer(ModelSerializer):
+
+    class Meta:
+        model = Desafio
+        fields = '__all__'
+        
+        
 class DesafioSerializer(ModelSerializer):
     archivos = ArchivoSerializer(source='archivo_set', many=True, read_only=True)
+    idconvocatoriadetalle = ConvocatoriaOnlyDepSerializer(source='idconvocatoria', many=False, required=False, read_only=True)
 
     class Meta:
         model = Desafio
@@ -383,18 +421,15 @@ class DesafioSerializer(ModelSerializer):
 
         return instance
 
-class DepartamentoSerializer(ModelSerializer):
-    directordetalle = UserSimpleDetalleSerializer(source='director',read_only=True)
-
-    class Meta:
-        model = Departamento
-        fields = '__all__'
 
 
 from django.utils.timezone import now
 import os
 from django.core.files.base import ContentFile
 import json
+
+
+    
 class ConvocatoriaSerializer(ModelSerializer):
     archivos = ArchivoSerializer(source='archivo_set', many=True, required=False)
     actividades = ActividadcronogramaSerializer(source='actividadcronograma_set', many=True, required=False)
@@ -514,6 +549,8 @@ class CursoCoordinadorSerializer(serializers.ModelSerializer):
 
 
 class CursoDesafioSerializer(ModelSerializer):
+    cursodetalle = OnlyCursoSerializer(source='idcurso', many=False, required=False, read_only=True)
+    desafiodetalle = OnlyDesafioSerializer(source='idproyecto', many=False, required=False, read_only=True)
 
     class Meta:
         model = CursoDesafio
@@ -607,12 +644,15 @@ class CriterioSerializer(ModelSerializer):
 
 
 class RubricaSerializer(ModelSerializer):
+    criterios = serializers.SerializerMethodField()
 
     class Meta:
         model = Rubrica
-        fields = '__all__'
+        fields = '__all__'  # o especifica tus campos, por ejemplo: ['idrubrica', 'nombre', 'criterios']
 
-
+    def get_criterios(self, obj):
+        criterios = Criterio.objects.filter(idrubrica=obj)
+        return CriterioSerializer(criterios, many=True).data
 
 
 
@@ -623,6 +663,13 @@ class ActividadtecnicaSerializer(ModelSerializer):
         fields = '__all__'
 
 
+class PostulacionPropuestaConvocatoriaDetalleSerializer(ModelSerializer):
+    desafiodetalle = DesafioSerializer(source='idproyecto', many=False, required=False, read_only=True)
+    class Meta:
+        model = PostulacionPropuesta
+        fields = '__all__'
+
+ 
 
 class PostulacionPropuestaSerializer(ModelSerializer):
     userinscripciondetalle = UserSimpleDetalleSerializer(source='iduser', many=False, required=False, read_only=True)
@@ -637,6 +684,8 @@ class PostulacionPropuestaSerializer(ModelSerializer):
 
 
 class UsuarioDesafioSerializer(ModelSerializer):
+    userinscripciondetalle = UserSimpleDetalleSerializer(source='iduser', many=False, required=False, read_only=True)
+    desafiodetalle = OnlyDesafioSerializer(source='idproyecto', many=False, required=False, read_only=True)
 
     class Meta:
         model = UsuarioDesafio
@@ -714,4 +763,15 @@ class UsuarioDesafioDesafioDetalleSerializer(ModelSerializer):
     class Meta:
         model = UsuarioDesafio
         fields = '__all__'
+
+class EmpresaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Empresa
+        fields = '__all__'  # Incluir todos los campos del modelo
+
+
+class HistoriaexitoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Historiaexito
+        fields = '__all__'  # Incluir todos los campos del modelo
 
