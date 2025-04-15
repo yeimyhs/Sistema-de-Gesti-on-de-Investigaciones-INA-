@@ -35,7 +35,14 @@ class UserSimpleDetalleSerializer(ModelSerializer):
             "estado"
         ]
 
+class OnlyDepartamentonombreSerializer(ModelSerializer):
+
+    class Meta:
+        model = Departamento
+        fields = 'nombre'
+        
 class OnlyCursoSerializer(ModelSerializer):
+    departamentodetalle = OnlyDepartamentonombreSerializer(source='iddepartamento', many=False, required=False)
 
     class Meta:
         model = Curso

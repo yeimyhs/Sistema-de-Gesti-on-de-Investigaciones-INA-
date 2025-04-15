@@ -303,7 +303,7 @@ class PostulacionPropuestaViewSet(SoftDeleteViewSet):
     queryset = PostulacionPropuesta.objects.prefetch_related("idproyecto__idconvocatoria", "iduser",'postulante_set').order_by('pk')
     serializer_class = PostulacionPropuestaSerializer
     filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend, DateTimeIntervalFilter]
-    filterset_fields = ['idproyecto', 'titulo', 'idproyecto__titulo','aceptado','iduser','iduser__nombres','iduser__email','aceptado','practico','rentable','pionero','total','idproyecto__idconvocatoria']
+    filterset_fields = ['idproyecto', 'titulo', 'idproyecto__titulo','aceptado','iduser','iduser__nombres','iduser__email','aceptado','practico','rentable','pionero','total','idproyecto__idconvocatoria', 'estado']
     search_fields = ['titulo', 'idproyecto__titulo','iduser__nombres']
     @action(detail=False, methods=['get'], url_path='detalle-convocatoria-listado')
     def detalle_convocatoria(self, request):
