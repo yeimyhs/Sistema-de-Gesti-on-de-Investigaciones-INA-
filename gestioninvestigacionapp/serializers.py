@@ -39,7 +39,7 @@ class OnlyDepartamentonombreSerializer(ModelSerializer):
 
     class Meta:
         model = Departamento
-        fields = 'nombre'
+        fields = ['nombre']
         
 class OnlyCursoSerializer(ModelSerializer):
     departamentodetalle = OnlyDepartamentonombreSerializer(source='iddepartamento', many=False, required=False)
