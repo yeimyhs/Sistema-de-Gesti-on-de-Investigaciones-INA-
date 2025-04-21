@@ -165,6 +165,26 @@ class CursoViewSet(SoftDeleteViewSet):
     filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend, DateTimeIntervalFilter]
     filterset_fields = ['idcurso', 'anioacademico', 'semestre', 'eliminado', 'estado', 'iddepartamento', 'iddepartamento__nombre', "nivel"]
     search_fields = ['titulo', 'iddepartamento__nombre']
+    @action(detail=False, methods=['get'], url_path='cursos-por-departamento')
+    def cursos_por_departamento(self, request):
+        ids_param = request.query_params.get('departamentos', '')
+        ids = [int(i) for i in ids_param.split(',') if i.isdigit()]
+        
+        if not ids:
+            return Response({"error": "Debes enviar al menos un ID de departamento."}, status=400)
+
+        queryset = self.filter_queryset(
+            Curso.objects.filter(iddepartamento__pk__in=ids).select_related('iddepartamento')
+        )
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)  # Esto asegura que DRF use correctamente el serializador
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
 
 class DepartamentoViewSet(SoftDeleteViewSet):
     queryset = Departamento.objects.order_by('pk')
@@ -544,23 +564,24 @@ class UserCursoViewSet(SoftDeleteViewSet):
         serializer = UserCursoFulldetalleSerializer(queryset, many=True)
         return Response(serializer.data)
 from django_filters.rest_framework import DjangoFilterBackend, FilterSet
-from django_filters import filters as django_filters
-from rest_framework import filters
+from django_filters import rest_framework as dfilters
 
 # Define un filtro personalizado
 class CursoDesafioFilter(FilterSet):
-    idcurso__in = django_filters.BaseInFilter(field_name='idcurso')
+    idcursos = dfilters.BaseInFilter(field_name='idcurso', lookup_expr='in')
     
     class Meta:
         model = CursoDesafio
         fields = ['idproyecto', 'idcurso', 'iddatostecnicos', 'idplanformacion', 'idcurso__titulo']
 
 class CursoDesafioViewSet(SoftDeleteViewSet):
-    queryset = CursoDesafio.objects.order_by('pk')
+    queryset = CursoDesafio.objects.select_related(
+        'idcurso', 'idproyecto'
+    ).order_by('pk')
     serializer_class = CursoDesafioSerializer
     filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend, DateTimeIntervalFilter]
     filterset_class = CursoDesafioFilter  # Usar la clase de filtro personalizada
-    search_fields = ['idproyecto__titulo', 'idcurso__titulo']
+    search_fields = ['idproyecto__titulo', 'idcurso__titulo', 'idcurso']
     
     
     
