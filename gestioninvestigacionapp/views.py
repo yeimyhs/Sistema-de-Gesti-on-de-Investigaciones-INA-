@@ -206,7 +206,30 @@ class DesafioViewSet(SoftDeleteViewSet):
     filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend, DateTimeIntervalFilter]
     filterset_fields = ['idproyecto', 'estado', 'eliminado', 'fechacreacion', 'idconvocatoria', 'idconvocatoria__titulo']
     search_fields = ['titulo', 'descripcion', 'idconvocatoria__titulo']
+    @action(detail=False, methods=['get'], url_path='desafios-por-usuario')
+    def desafios_por_usuario(self, request):
+        iduser = request.query_params.get('iduser')
+        if not iduser or not iduser.isdigit():
+            return Response({"error": "ID de usuario inválido."}, status=400)
 
+        try:
+            usuario = User.objects.get(pk=iduser)
+        except User.DoesNotExist:
+            return Response({"error": "Usuario no encontrado."}, status=404)
+
+        relaciones_desafio = UsuarioDesafio.objects.filter(
+            iduser=iduser
+        ).select_related('idproyecto', 'iduser')
+
+        relaciones_curso = UserCurso.objects.filter(iduser=iduser).select_related('idcurso')
+
+        serializer = DesafiosUsuarioConCursoSerializer({
+            "usuario": usuario,
+            "relaciones_desafio": relaciones_desafio,
+            "relaciones_curso": relaciones_curso,
+        })
+
+        return Response(serializer.data)
 
 class EntregableViewSet(SoftDeleteViewSet):
     queryset = Entregable.objects.order_by('pk')

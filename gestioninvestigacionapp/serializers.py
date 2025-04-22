@@ -782,3 +782,30 @@ class HistoriaexitoSerializer(serializers.ModelSerializer):
         model = Historiaexito
         fields = '__all__'  # Incluir todos los campos del modelo
 
+
+
+#----------------------------------------
+class OnlyCursoBasicSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Curso
+        fields = '__all__'
+
+
+class RelacionUsuarioDesafioSerializer(serializers.ModelSerializer):
+    desafio = OnlyDesafioSerializer(source='idproyecto')
+
+    class Meta:
+        model = UsuarioDesafio
+        fields = ['pk', 'rol', 'desafio']
+
+class RelacionUsuarioCursoSerializer(serializers.ModelSerializer):
+    curso = OnlyCursoBasicSerializer(source='idcurso')
+
+    class Meta:
+        model = UserCurso
+        fields = ['pk', 'rol', 'curso']
+
+class DesafiosUsuarioConCursoSerializer(serializers.Serializer):
+    usuario = UserSimpleDetalleSerializer()
+    relaciones_desafio = RelacionUsuarioDesafioSerializer(many=True)
+    relaciones_curso = RelacionUsuarioCursoSerializer(many=True)
