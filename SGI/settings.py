@@ -104,6 +104,11 @@ DATABASES = {
 }
 
 REST_FRAMEWORK = {
+    'DEFAULT_FILTER_BACKENDS': [
+        'rest_framework.filters.SearchFilter',
+        'rest_framework.filters.OrderingFilter',
+        'django_filters.rest_framework.DjangoFilterBackend',
+    ],
     'DEFAULT_AUTHENTICATION_CLASSES': (
                                        'knox.auth.TokenAuthentication',),
     'EXCEPTION_HANDLER': 'rest_framework.views.exception_handler',

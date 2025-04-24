@@ -80,3 +80,35 @@ class DateTimeIntervalFilter(BaseFilterBackend):
         return queryset
     
     
+from django_filters import rest_framework as filters
+from .models import DetallesCompletos
+
+class DetallesCompletosFilter(filters.FilterSet):
+    # Opcionalmente puedes definir filtros personalizados aquí
+    # Por ejemplo:
+    # nivel_curso = filters.CharFilter(lookup_expr='icontains')
+    
+    class Meta:
+        model = DetallesCompletos
+        fields = [
+    "user_curso_idrelacion",
+    "idcurso",
+    "titulo_curso",
+    "nivel_curso",
+    "anioacademico_curso",
+    "semestre_curso",
+    "estado_curso",
+    "idusuario",
+    "nombre_usuario",
+    "apellidos_usuario",
+    "telefono_usuario",
+    "email_usuario",
+    "usuario_rol_idrelacion",
+    "idrol",
+    "nombre_rol",
+    "curso_desafio_idrelacion",
+    "usuario_desafio_idrelacion",
+    "iddesafio",
+    "titulo_desafio",
+    "descripcion_desafio"
+]

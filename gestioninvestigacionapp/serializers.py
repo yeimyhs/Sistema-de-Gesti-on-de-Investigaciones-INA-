@@ -440,7 +440,7 @@ import json
 class ConvocatoriaSerializer(ModelSerializer):
     archivos = ArchivoSerializer(source='archivo_set', many=True, required=False)
     actividades = ActividadcronogramaSerializer(source='actividadcronograma_set', many=True, required=False)
-    desafios = DesafioSerializer(source='desafio_set', many=True, required=False)
+    desafios = OnlyDesafioSerializer(source='desafio_set', many=True, required=False)
     departamentodetalle = DepartamentoSerializer(source='iddepartamento', many=False, required=False)
 
     class Meta:
@@ -809,3 +809,14 @@ class DesafiosUsuarioConCursoSerializer(serializers.Serializer):
     usuario = UserSimpleDetalleSerializer()
     relaciones_desafio = RelacionUsuarioDesafioSerializer(many=True)
     relaciones_curso = RelacionUsuarioCursoSerializer(many=True)
+
+
+class DetalleCompletoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DetalleCompleto
+        fields = '__all__'
+        
+class DetallesCompletosSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DetallesCompletos
+        fields = '__all__'

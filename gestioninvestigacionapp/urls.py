@@ -15,12 +15,14 @@ urlpatterns = [
     path('logout/', knox_views.LogoutView.as_view(), name='knox_logout'),
     path('logoutall/', knox_views.LogoutAllView.as_view(), name='knox_logoutall'),
     path("contacto/", views.ContactoAPIView.as_view(), name="contacto"),
-    
+    path('detalles-completos/', views.DetalleCompletoListView.as_view(), name='detalles-completos'),
+    path('detalles-completos2/', views.DetallesCompletosFuncion2View.as_view(), name='detalles-completos2'),
     path('password-reset-request/', views.PasswordResetRequestView.as_view(), name='password_reset_request'),
     path('password-reset/', views.PasswordResetView.as_view(), name='password_reset'),
    
 ]
 
+router.register(r'curso_usuario_rol_desafio', views.DetallesCompletosViewSet, 'curso_usuario_rol_desafio')
 router.register(r'configuracion', views.ConfiguracionViewSet, 'Configuracion')
 router.register(r'actividad', views.ActividadViewSet, 'Actividad')
 router.register(r'archivo', views.ArchivoViewSet, 'Archivo')

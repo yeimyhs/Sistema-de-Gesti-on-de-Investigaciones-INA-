@@ -151,12 +151,22 @@ class DatosTecnicosViewSet(SoftDeleteViewSet):
     filterset_fields = ['descripcion']
     search_fields = ['descripcion']
     
-    
+from django_filters import rest_framework as dfilters
+class NumberInFilter(dfilters.BaseInFilter, dfilters.NumberFilter):
+    pass
+
+class ConvocatoriaFilter(dfilters.FilterSet):
+    estado__in = NumberInFilter(field_name='estado', lookup_expr='in')
+
+    class Meta:
+        model = Convocatoria
+        fields = ['idconvocatoria', 'eliminado', 'estado', 'estado__in', 'fechacreacion', 'iddepartamento']
+            
 class ConvocatoriaViewSet(SoftDeleteViewSet):
     queryset = Convocatoria.objects.order_by('pk')
     serializer_class = ConvocatoriaSerializer
     filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend, DateTimeIntervalFilter]
-    filterset_fields = ['idconvocatoria', 'eliminado', 'estado', 'fechacreacion', 'iddepartamento']
+    filterset_class = ConvocatoriaFilter
     search_fields = ['titulo', 'descripcion', 'objetivogeneral']
 
 class CursoViewSet(SoftDeleteViewSet):
@@ -680,7 +690,7 @@ class UsuarioRolSistemaViewSet(SoftDeleteViewSet):
     filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend, DateTimeIntervalFilter]
     serializer_class = UsuarioRolSistemaSerializer
     filterset_fields = ['iduser','idrol']
-    search_fields = ['idrol', 'iduser']
+    search_fields = ['idrol__titulo', 'iduser__nombres', 'iduser__apellidos', 'iduser__email']
     
     def get_queryset(self):
         queryset = super().get_queryset()
@@ -749,8 +759,40 @@ class HistoriaexitoViewSet(SoftDeleteViewSet):
     filterset_fields = ['historia','nombre', 'cargo', 'estado']
     search_fields = ['historia','nombre', 'cargo', 'estado']
     
-    
 
+class DetalleCompletoListView(generics.ListAPIView):
+    queryset = DetalleCompleto.objects.all()
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend, DateTimeIntervalFilter]
+    serializer_class = DetalleCompletoSerializer
+    filterset_fields = ['idusuario', 'idcurso', 'iddesafio', 'idrol']  # Puedes agregar más
+    search_fields = ['nombre_usuario', 'titulo_curso', 'titulo_desafio']
+
+from django.db import connection
+from rest_framework.views import APIView
+
+class DetallesCompletosFuncion2View(APIView):
+    def get(self, request):
+        anio = request.GET.get('anio')  # filtro opcional de ejemplo
+
+        query = "SELECT * FROM traer_detalles_completos_18()"
+        if anio:
+            query = f"""
+                SELECT * FROM traer_detalles_completos_18()
+                WHERE anioacademico_curso = {int(anio)}
+            """
+
+        with connection.cursor() as cursor:
+            cursor.execute(query)
+            columns = [col[0] for col in cursor.description]
+            results = [
+                dict(zip(columns, row))
+                for row in cursor.fetchall()
+            ]
+
+        return JsonResponse(results, safe=False)
+
+    
+    
 class RolViewSet(SoftDeleteViewSet):
     """
     API para gestionar los roles en el sistema.
@@ -897,3 +939,184 @@ class PasswordResetView(APIView):
         return HttpResponse(html_content, content_type="text/html")
         # Renderizar el formulario de restablecimiento de contraseña
         #return render(request, "password_reset_form.html", {"user_id": user_id, "token": token})
+
+
+
+
+
+
+
+from rest_framework import viewsets, filters
+from rest_framework.response import Response
+from django.db import connection
+from .serializers import DetallesCompletosSerializer
+from .models import DetallesCompletos
+from .filters import DateTimeIntervalFilter
+
+# Custom filter backend for raw procedure data
+class CustomFilterBackend:
+    def filter_queryset(self, request, queryset, view):
+        # Get filter parameters from the request
+        filterset_fields = getattr(view, 'filterset_fields', [])
+        filtered_queryset = queryset
+        
+        # Apply filters manually
+        for field in filterset_fields:
+            value = request.query_params.get(field, None)
+            if value is not None:
+                filtered_queryset = [
+                    item for item in filtered_queryset
+                    if getattr(item, field, None) == value or 
+                       (isinstance(getattr(item, field, None), str) and 
+                        value.lower() in getattr(item, field, '').lower())
+                ]
+        
+        return filtered_queryset
+
+# Custom search backend for raw procedure data
+class CustomSearchBackend:
+    def filter_queryset(self, request, queryset, view):
+        search_term = request.query_params.get('search', None)
+        if not search_term:
+            return queryset
+            
+        search_fields = getattr(view, 'search_fields', [])
+        if not search_fields:
+            return queryset
+            
+        # Simple search implementation
+        results = []
+        for item in queryset:
+            for field in search_fields:
+                field_value = getattr(item, field, '')
+                if field_value and search_term.lower() in str(field_value).lower():
+                    results.append(item)
+                    break
+                    
+        return results
+
+# Custom ordering backend
+class CustomOrderingBackend:
+    def filter_queryset(self, request, queryset, view):
+        ordering = request.query_params.get('ordering', None)
+        if ordering is None:
+            return queryset
+            
+        ordering_fields = getattr(view, 'ordering_fields', [])
+        if not ordering or not ordering_fields:
+            return queryset
+            
+        reverse = False
+        if ordering.startswith('-'):
+            reverse = True
+            ordering = ordering[1:]
+            
+        if ordering in ordering_fields:
+            return sorted(
+                queryset, 
+                key=lambda obj: getattr(obj, ordering, ''),
+                reverse=reverse
+            )
+            
+        return queryset
+
+class ProcedimientoModelViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet base personalizado para trabajar con procedimientos almacenados
+    """
+    def get_queryset(self):
+        return DetallesCompletos.objects.none()
+    
+    def list(self, request, *args, **kwargs):
+        # Obtenemos los datos directamente del procedimiento
+        resultados = DetallesCompletos.detalles.get_from_procedure()
+        
+        # Mostrar en la consola para depuración
+        print(f"Resultados obtenidos: {len(resultados)}")
+        if resultados:
+            print(f"Ejemplo de item: {resultados[0]}")
+        
+        # Aplicar filtros - VERSIÓN CORREGIDA
+        filtered_results = resultados
+        
+        # Debugging - mostrar parámetros recibidos
+        print(f"Query params: {request.query_params}")
+        
+        # Filtrar por cada parámetro excepto los especiales
+        for param, value in request.query_params.items():
+            if param not in ['search', 'ordering', 'page', 'page_size', 'format']:
+                # Antes del filtrado
+                count_before = len(filtered_results)
+                print(f"Filtrando por {param}={value}, resultados antes: {count_before}")
+                
+                # Implementación más flexible del filtrado
+                temp_results = []
+                for item in filtered_results:
+                    # Convertir a string para comparación (si existe el campo)
+                    if param in item:
+                        item_value = str(item.get(param, '')).lower()
+                        param_value = str(value).lower()
+                        
+                        # Compara de forma flexible
+                        if param_value in item_value or param_value == item_value:
+                            temp_results.append(item)
+                
+                filtered_results = temp_results
+                
+                # Después del filtrado
+                print(f"Resultados después: {len(filtered_results)}")
+        
+        # Aplicar búsqueda
+        search_term = request.query_params.get('search')
+        if search_term and hasattr(self, 'search_fields'):
+            count_before = len(filtered_results)
+            print(f"Aplicando búsqueda por '{search_term}', resultados antes: {count_before}")
+            
+            search_results = []
+            for item in filtered_results:
+                found = False
+                for field in self.search_fields:
+                    if field in item:
+                        field_value = str(item.get(field, '')).lower()
+                        if search_term.lower() in field_value:
+                            search_results.append(item)
+                            found = True
+                            break
+            
+            filtered_results = search_results
+            print(f"Resultados después de búsqueda: {len(filtered_results)}")
+        
+        # Aplicar ordenamiento
+        ordering = request.query_params.get('ordering')
+        if ordering and hasattr(self, 'ordering_fields'):
+            reverse = False
+            if ordering.startswith('-'):
+                reverse = True
+                ordering = ordering[1:]
+            
+            if ordering in self.ordering_fields:
+                try:
+                    filtered_results = sorted(
+                        filtered_results,
+                        key=lambda x: str(x.get(ordering, '')).lower(),
+                        reverse=reverse
+                    )
+                    print(f"Ordenado por {ordering} {'descendente' if reverse else 'ascendente'}")
+                except Exception as e:
+                    print(f"Error al ordenar: {e}")
+        
+        # Paginamos
+        page = self.paginate_queryset(filtered_results)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        
+        serializer = self.get_serializer(filtered_results, many=True)
+        return Response(serializer.data)
+
+class DetallesCompletosViewSet(ProcedimientoModelViewSet):
+    serializer_class = DetallesCompletosSerializer
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend]
+    search_fields = ['titulo_curso', 'nombre_usuario', 'titulo_desafio']
+    ordering_fields = ['titulo_curso', 'nombre_usuario', 'nivel_curso', 'titulo_desafio']
+    filterset_class = DetallesCompletosFilter

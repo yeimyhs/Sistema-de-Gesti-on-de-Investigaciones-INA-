@@ -622,3 +622,67 @@ class UsuarioRolSistema(SoftDeleteModel):
 
 
 
+        
+        
+class DetalleCompleto(models.Model):
+    # Relación user_curso
+    user_curso_idrelacion = models.BigIntegerField()
+    class Meta:
+        managed = False  # Django no debe crear ni modificar esta tabla
+        
+        
+from django.db import models
+
+class DetallesManager(models.Manager):
+    def get_from_procedure(self):
+        from django.db import connection
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT * FROM traer_detalles_completos_18()")
+            columns = [col[0] for col in cursor.description]
+            return [
+                dict(zip(columns, row))
+                for row in cursor.fetchall()
+            ]
+    
+class DetallesCompletos(models.Model):
+    # Relación user_curso
+    user_curso_idrelacion = models.BigIntegerField()
+
+    # Curso
+    idcurso = models.BigIntegerField()
+    titulo_curso = models.TextField()
+    nivel_curso = models.TextField()
+    anioacademico_curso = models.IntegerField()
+    semestre_curso = models.SmallIntegerField()
+    estado_curso = models.SmallIntegerField()
+
+    # Usuario
+    idusuario = models.BigIntegerField()
+    nombre_usuario = models.TextField()
+    apellidos_usuario = models.TextField()
+    telefono_usuario = models.TextField()
+    email_usuario = models.TextField()
+
+    # Relación usuario_rol
+    usuario_rol_idrelacion = models.BigIntegerField()
+    idrol = models.BigIntegerField()
+    nombre_rol = models.TextField()
+
+    # Relación curso_desafio
+    curso_desafio_idrelacion = models.BigIntegerField()
+
+    # Relación usuario_desafio
+    usuario_desafio_idrelacion = models.BigIntegerField()
+
+    # Desafío
+    iddesafio = models.BigIntegerField()
+    titulo_desafio = models.TextField()
+    descripcion_desafio = models.TextField()
+
+    objects = models.Manager()  # Manager predeterminado
+    detalles = DetallesManager()
+    
+    class Meta:
+        managed = False  # Django no debe crear ni modificar esta tabla
+        
+        
