@@ -567,7 +567,7 @@ class CursoDesafioSerializer(ModelSerializer):
 
 class CursoSerializer(ModelSerializer):
     coordinadores = serializers.SerializerMethodField()
-    departamentodetalle = DepartamentoSerializer(source='iddepartamento', many=False, required=False)
+    departamentodetalle = DepartamentoSerializer(source='iddepartamento', many=False, required=False, read_only=True)
 
     class Meta:
         model = Curso

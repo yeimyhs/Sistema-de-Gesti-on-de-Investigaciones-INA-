@@ -396,140 +396,123 @@ class UserCursoViewSet(SoftDeleteViewSet):
     @action(detail=False, methods=["post"], url_path="matricular_estudiantes")
     def matricular_estudiantes(self, request):
         """ Servicio para matricular múltiples estudiantes en un curso. """
+        
         ids_usuarios = request.data.get('idusers', [])
         idcurso = request.data.get('idcurso')
 
         if not ids_usuarios or not idcurso:
-            return Response({'error': 'Faltan parámetros: ids_usuarios o idcurso'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error': 'Faltan parámetros: idusers o idcurso'}, status=status.HTTP_400_BAD_REQUEST)
 
         curso = Curso.objects.filter(pk=idcurso).first()
         if not curso:
             return Response({'error': 'Curso no encontrado'}, status=status.HTTP_404_NOT_FOUND)
 
+        errores, creados, reactivados = [], [], []
+
         for iduser in ids_usuarios:
-            # Verificar si el usuario tiene un UsuarioDesafio con rol 7 (estudiante)
-            usuario_desafios = UsuarioDesafio.objects.filter(
-                iduser=iduser,
-                rol=7,
-                eliminado=0
-            )
-
-            if not usuario_desafios.exists():
-                continue  # El usuario no tiene relación válida como estudiante
-
-            # Verificar o crear CursoDesafio para cada proyecto relacionado
-            for ud in usuario_desafios:
-                curso_desafio = CursoDesafio.all_objects.filter(
-                    idcurso=curso,
-                    idproyecto=ud.idproyecto
-                ).first()
-
-                if curso_desafio:
-                    if curso_desafio.eliminado:
-                        curso_desafio.eliminado = 0
-                        curso_desafio.save()
+            try:
+                # Paso 1: Matricular en UserCurso
+                usercurso = UserCurso.all_objects.filter(iduser_id=iduser, idcurso=curso, rol=7).first()
+                if usercurso:
+                    if usercurso.eliminado:
+                        usercurso.eliminado = 0
+                        usercurso.save()
+                        reactivados.append(iduser)
                 else:
-                    CursoDesafio.objects.create(idcurso=curso, idproyecto=ud.idproyecto)
+                    UserCurso.objects.create(iduser_id=iduser, idcurso=curso, rol=7)
+                    creados.append(iduser)
 
-            # Verificar y activar/crear UserCurso
-            usercurso = UserCurso.all_objects.filter(iduser=iduser, idcurso=curso).first()
-            if usercurso:
-                if usercurso.eliminado:
-                    usercurso.eliminado = 0
-                    usercurso.save()
-            else:
-                UserCurso.objects.create(iduser_id=iduser, idcurso_id=idcurso)
+                # Paso 2: Buscar relaciones UsuarioDesafio (rol=7)
+                relaciones_ud = UsuarioDesafio.objects.filter(iduser_id=iduser, rol=7, eliminado=0)
 
-        return Response({'mensaje': 'Matriculación completada'}, status=status.HTTP_200_OK)
+                for ud in relaciones_ud:
+                    desafio = ud.idproyecto
 
-    
-    @action(detail=False, methods=["patch"], url_path="actualizar_matriculados")
-    def actualizar_matriculados(self, request):
-        """ Servicio para actualizar la lista de estudiantes matriculados en un curso y los desafíos asociados """
-        data = request.data
-        idcurso = data.get("idcurso")
-        nuevos_idusers = set(data.get("idusers", []))  # Matricular los usuarios
-        nuevos_desafios_ids = set(data.get("desafios_ids", []))  # Nuevos desafíos para el curso
+                    # Paso 3: Verificar y crear CursoDesafio si no existe
+                    curso_desafio = CursoDesafio.objects.filter(idcurso=curso, idproyecto=desafio).first()
+                    if not curso_desafio:
+                        curso_desafio = CursoDesafio.objects.create(idcurso=curso, idproyecto=desafio)
 
-        # Validar que el curso existe
-        try:
-            curso = Curso.objects.get(pk=idcurso)
-        except Curso.DoesNotExist:
-            return Response({"error": "El curso no existe."}, status=status.HTTP_400_BAD_REQUEST)
+                    # Paso 4: Asegurar existencia de UsuarioDesafio (activo)
+                    ud_existente = UsuarioDesafio.all_objects.filter(
+                        iduser_id=iduser, idproyecto=desafio, rol=7
+                    ).first()
 
-        try:
-            with transaction.atomic():
-                # --- Actualización de matrícula de estudiantes ---
-                matriculados_actuales = UserCurso.objects.filter(idcurso=curso, rol=7)
-                matriculados_ids = {uc.iduser.id for uc in matriculados_actuales}
+                    if ud_existente:
+                        if ud_existente.eliminado:
+                            ud_existente.eliminado = 0
+                            ud_existente.save()
+                    else:
+                        UsuarioDesafio.objects.create(iduser_id=iduser, idproyecto=desafio, rol=7)
 
-                ids_a_eliminar = matriculados_ids - nuevos_idusers
-                ids_a_agregar = nuevos_idusers - matriculados_ids
-
-                # "Eliminar" (desactivar) registros
-                UserCurso.objects.filter(idcurso=curso, rol=7, iduser__id__in=ids_a_eliminar).update(eliminado=True)
-
-                # Validar que los usuarios a agregar existan
-                usuarios_a_agregar = CustomUser.objects.filter(id__in=ids_a_agregar)
-                if len(usuarios_a_agregar) != len(ids_a_agregar):
-                    return Response({"error": "Uno o más usuarios a agregar no existen."}, status=status.HTTP_400_BAD_REQUEST)
-
-                # Agregar o reactivar usuarios
-                for user in usuarios_a_agregar:
-                    usercurso_obj, created = UserCurso.objects.get_or_create(
-                        iduser=user,
-                        idcurso=curso,
-                        rol=7,
-                        defaults={"eliminado": False}
-                    )
-                    if not created and usercurso_obj.eliminado:
-                        usercurso_obj.eliminado = False
-                        usercurso_obj.save()
-
-                # --- Actualización de desafíos asociados al curso ---
-                desafios_actuales = CursoDesafio.objects.filter(idcurso=curso).values_list('idproyecto', flat=True)
-                desafios_actuales_ids = set(desafios_actuales)
-
-                desafios_a_eliminar = desafios_actuales_ids - nuevos_desafios_ids
-                desafios_a_agregar = nuevos_desafios_ids - desafios_actuales_ids
-
-                CursoDesafio.objects.filter(idcurso=curso, idproyecto__in=desafios_a_eliminar).delete()
-                nuevos_registros_desafios = [
-                    CursoDesafio(idcurso=curso, idproyecto=Desafio.objects.get(id=id))
-                    for id in desafios_a_agregar
-                ]
-                CursoDesafio.objects.bulk_create(nuevos_registros_desafios)
-
-        except Exception as e:
-            return Response({"error": f"Error al actualizar matriculados: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-        # --- Respuesta actualizada ---
-        matriculados_actualizados = UserCurso.objects.filter(idcurso=curso, rol=7, eliminado=False).select_related('iduser')
-        lista_matriculados = [
-            {
-                "id": uc.iduser.id,
-                "nombre": uc.iduser.nombres,
-                "apellido": uc.iduser.apellidos,
-                "email": uc.iduser.email
-            }
-            for uc in matriculados_actualizados
-        ]
-
-        desafios_actualizados = CursoDesafio.objects.filter(idcurso=curso).select_related('idproyecto')
-        lista_desafios = [
-            {
-                "id": cd.idproyecto.id,
-                "titulo": cd.idproyecto.titulo
-            }
-            for cd in desafios_actualizados
-        ]
+            except Exception as e:
+                errores.append({'iduser': iduser, 'error': str(e)})
 
         return Response({
-            "message": "Matrícula y desafíos actualizados correctamente.",
-            "matriculados": lista_matriculados,
-            "desafios": lista_desafios
+            'mensaje': 'Proceso completado',
+            'creados': creados,
+            'reactivados': reactivados,
+            'errores': errores
         }, status=status.HTTP_200_OK)
-        
+
+    @action(detail=False, methods=["post"], url_path="desmatricular_estudiantes")
+    def desmatricular_estudiantes(self, request):
+        ids_usuarios = request.data.get('idusers', [])
+        idcurso = request.data.get('idcurso')
+
+        if not ids_usuarios or not idcurso:
+            return Response({'error': 'Faltan parámetros: idusers o idcurso'}, status=status.HTTP_400_BAD_REQUEST)
+
+        curso = Curso.objects.filter(pk=idcurso).first()
+        if not curso:
+            return Response({'error': 'Curso no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+
+        desmatriculados, desvinculados_cd, errores = [], [], []
+
+        for iduser in ids_usuarios:
+            try:
+                # 1. Desactivar la relación UserCurso
+                usercurso = UserCurso.objects.filter(iduser_id=iduser, idcurso=curso, rol=7, eliminado=0).first()
+                if usercurso:
+                    usercurso.eliminado = 1
+                    usercurso.save()
+                    desmatriculados.append(iduser)
+
+                # 2. Buscar todos los desafíos del usuario (activos, rol=7)
+                usuario_desafios = UsuarioDesafio.objects.filter(iduser_id=iduser, rol=7, eliminado=0)
+
+                for ud in usuario_desafios:
+                    desafio = ud.idproyecto
+
+                    # Verificar si hay otros usuarios estudiantes activos en este Curso y Desafío
+                    curso_desafio = CursoDesafio.objects.filter(idcurso=curso, idproyecto=desafio).first()
+                    if curso_desafio:
+                        otros_estudiantes = UserCurso.objects.filter(
+                            idcurso=curso,
+                            rol=7,
+                            eliminado=0,
+                            iduser_id__in=UsuarioDesafio.objects.filter(
+                                idproyecto=desafio,
+                                rol=7,
+                                eliminado=0
+                            ).exclude(iduser_id=iduser).values_list('iduser_id', flat=True)
+                        )
+
+                        # Si ya no hay más estudiantes activos, eliminar la relación CursoDesafio
+                        if not otros_estudiantes.exists():
+                            curso_desafio.delete()
+                            desvinculados_cd.append({'curso': idcurso, 'desafio': desafio.pk})
+
+            except Exception as e:
+                errores.append({'iduser': iduser, 'error': str(e)})
+
+        return Response({
+            'mensaje': 'Desmatriculación completada',
+            'desmatriculados': desmatriculados,
+            'curso_desafio_desvinculados': desvinculados_cd,
+            'errores': errores
+        }, status=status.HTTP_200_OK)
+
     def get_serializer_class(self):
         """Permite cambiar el serializador según la acción."""
         if self.action == 'cursos_detalle':
