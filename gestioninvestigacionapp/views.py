@@ -396,77 +396,55 @@ class UserCursoViewSet(SoftDeleteViewSet):
     @action(detail=False, methods=["post"], url_path="matricular_estudiantes")
     def matricular_estudiantes(self, request):
         """ Servicio para matricular múltiples estudiantes en un curso. """
-        data = request.data
-        idcurso = data.get("idcurso")
-        idusers = data.get("idusers", [])  # Lista de IDs de usuarios
+        ids_usuarios = request.data.get('idusers', [])
+        idcurso = request.data.get('idcurso')
 
-        # Validar que el curso existe
-        try:
-            curso = Curso.objects.get(pk=idcurso)
-        except Curso.DoesNotExist:
-            return Response({"error": "El curso no existe."}, status=status.HTTP_400_BAD_REQUEST)
+        if not ids_usuarios or not idcurso:
+            return Response({'error': 'Faltan parámetros: ids_usuarios o idcurso'}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Validar que los usuarios existen
-        usuarios = CustomUser.objects.filter(id__in=idusers)
-        if usuarios.count() != len(idusers):
-            return Response({"error": "Uno o más usuarios no existen."}, status=status.HTTP_400_BAD_REQUEST)
+        curso = Curso.objects.filter(pk=idcurso).first()
+        if not curso:
+            return Response({'error': 'Curso no encontrado'}, status=status.HTTP_404_NOT_FOUND)
 
-        # Verificar que los estudiantes no estén ya matriculados en el curso
-        matriculados = UserCurso.objects.filter(idcurso=curso, iduser__in=idusers)
-        matriculados_ids = {uc.iduser.id for uc in matriculados}
+        for iduser in ids_usuarios:
+            # Verificar si el usuario tiene un UsuarioDesafio con rol 7 (estudiante)
+            usuario_desafios = UsuarioDesafio.objects.filter(
+                iduser=iduser,
+                rol=7,
+                eliminado=0
+            )
 
-        if len(matriculados_ids) > 0:
-            return Response({"error": f"Los siguientes usuarios ya están matriculados: {', '.join(map(str, matriculados_ids))}"}, status=status.HTTP_400_BAD_REQUEST)
+            if not usuario_desafios.exists():
+                continue  # El usuario no tiene relación válida como estudiante
 
-        # Transacción para garantizar que todas las inserciones sean atómicas
-        try:
-            with transaction.atomic():
-                registros = [
-                    UserCurso(iduser=user, idcurso=curso, rol=7)
-                    for user in usuarios
-                ]
-                UserCurso.objects.bulk_create(registros)
-        except Exception as e:
-            return Response({"error": f"Error al matricular: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            # Verificar o crear CursoDesafio para cada proyecto relacionado
+            for ud in usuario_desafios:
+                curso_desafio = CursoDesafio.all_objects.filter(
+                    idcurso=curso,
+                    idproyecto=ud.idproyecto
+                ).first()
 
-        return Response({"message": "Estudiantes matriculados exitosamente."}, status=status.HTTP_201_CREATED)
-    
-    
-    @action(detail=False, methods=["post"], url_path="desmatricular_estudiantes")
-    def desmatricular_estudiantes(self, request):
-        """ Servicio para desmatricular múltiples estudiantes de un curso. """
-        data = request.data
-        idcurso = data.get("idcurso")
-        idusers = data.get("idusers", [])  # Lista de IDs de usuarios
+                if curso_desafio:
+                    if curso_desafio.eliminado:
+                        curso_desafio.eliminado = 0
+                        curso_desafio.save()
+                else:
+                    CursoDesafio.objects.create(idcurso=curso, idproyecto=ud.idproyecto)
 
-        # Validar que el curso existe
-        try:
-            curso = Curso.objects.get(pk=idcurso)
-        except Curso.DoesNotExist:
-            return Response({"error": "El curso no existe."}, status=status.HTTP_400_BAD_REQUEST)
+            # Verificar y activar/crear UserCurso
+            usercurso = UserCurso.all_objects.filter(iduser=iduser, idcurso=curso).first()
+            if usercurso:
+                if usercurso.eliminado:
+                    usercurso.eliminado = 0
+                    usercurso.save()
+            else:
+                UserCurso.objects.create(iduser_id=iduser, idcurso_id=idcurso)
 
-        # Validar que los usuarios existen
-        usuarios = CustomUser.objects.filter(id__in=idusers)
-        if usuarios.count() != len(idusers):
-            return Response({"error": "Uno o varios usuarios no existen."}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'mensaje': 'Matriculación completada'}, status=status.HTTP_200_OK)
 
-        # Intentar eliminar los registros de matrícula
-        try:
-            with transaction.atomic():
-                eliminados, _ = UserCurso.objects.filter(
-                    idcurso=curso, iduser__in=usuarios, rol=7
-                ).delete()
-        except Exception as e:
-            return Response({"error": f"Error al desmatricular: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-        if eliminados == 0:
-            return Response({"message": "No se encontraron registros para eliminar."}, status=status.HTTP_404_NOT_FOUND)
-
-        return Response({"message": f"{eliminados} estudiantes desmatriculados exitosamente."}, status=status.HTTP_200_OK)
     
     @action(detail=False, methods=["patch"], url_path="actualizar_matriculados")
     def actualizar_matriculados(self, request):
-
         """ Servicio para actualizar la lista de estudiantes matriculados en un curso y los desafíos asociados """
         data = request.data
         idcurso = data.get("idcurso")
@@ -479,55 +457,54 @@ class UserCursoViewSet(SoftDeleteViewSet):
         except Curso.DoesNotExist:
             return Response({"error": "El curso no existe."}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Actualización de matrícula de estudiantes
-        matriculados_actuales = UserCurso.objects.filter(idcurso=curso, rol=7)
-        matriculados_ids = {uc.iduser.id for uc in matriculados_actuales}
-
-        ids_a_eliminar = matriculados_ids - nuevos_idusers
-        ids_a_agregar = nuevos_idusers - matriculados_ids
-
-        # Validar que los usuarios a agregar existan
-        usuarios_a_agregar = CustomUser.objects.filter(id__in=ids_a_agregar)
-        if len(usuarios_a_agregar) != len(ids_a_agregar):
-            return Response({"error": "Uno o más usuarios a agregar no existen."}, status=status.HTTP_400_BAD_REQUEST)
-
-        # Actualizar matrícula de estudiantes
         try:
             with transaction.atomic():
-                # Eliminar los registros de usuarios que ya no deberían estar matriculados
-                UserCurso.objects.filter(idcurso=curso, rol=7, iduser__id__in=ids_a_eliminar).delete()
+                # --- Actualización de matrícula de estudiantes ---
+                matriculados_actuales = UserCurso.objects.filter(idcurso=curso, rol=7)
+                matriculados_ids = {uc.iduser.id for uc in matriculados_actuales}
 
-                # Agregar nuevos usuarios
-                nuevos_registros = [UserCurso(iduser=user, idcurso=curso, rol=7) for user in usuarios_a_agregar]
-                UserCurso.objects.bulk_create(nuevos_registros)
+                ids_a_eliminar = matriculados_ids - nuevos_idusers
+                ids_a_agregar = nuevos_idusers - matriculados_ids
+
+                # "Eliminar" (desactivar) registros
+                UserCurso.objects.filter(idcurso=curso, rol=7, iduser__id__in=ids_a_eliminar).update(eliminado=True)
+
+                # Validar que los usuarios a agregar existan
+                usuarios_a_agregar = CustomUser.objects.filter(id__in=ids_a_agregar)
+                if len(usuarios_a_agregar) != len(ids_a_agregar):
+                    return Response({"error": "Uno o más usuarios a agregar no existen."}, status=status.HTTP_400_BAD_REQUEST)
+
+                # Agregar o reactivar usuarios
+                for user in usuarios_a_agregar:
+                    usercurso_obj, created = UserCurso.objects.get_or_create(
+                        iduser=user,
+                        idcurso=curso,
+                        rol=7,
+                        defaults={"eliminado": False}
+                    )
+                    if not created and usercurso_obj.eliminado:
+                        usercurso_obj.eliminado = False
+                        usercurso_obj.save()
+
+                # --- Actualización de desafíos asociados al curso ---
+                desafios_actuales = CursoDesafio.objects.filter(idcurso=curso).values_list('idproyecto', flat=True)
+                desafios_actuales_ids = set(desafios_actuales)
+
+                desafios_a_eliminar = desafios_actuales_ids - nuevos_desafios_ids
+                desafios_a_agregar = nuevos_desafios_ids - desafios_actuales_ids
+
+                CursoDesafio.objects.filter(idcurso=curso, idproyecto__in=desafios_a_eliminar).delete()
+                nuevos_registros_desafios = [
+                    CursoDesafio(idcurso=curso, idproyecto=Desafio.objects.get(id=id))
+                    for id in desafios_a_agregar
+                ]
+                CursoDesafio.objects.bulk_create(nuevos_registros_desafios)
 
         except Exception as e:
             return Response({"error": f"Error al actualizar matriculados: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-        # Actualización de desafíos asociados al curso
-        desafios_actuales = CursoDesafio.objects.filter(idcurso=curso).values_list('idproyecto', flat=True)
-        desafios_actuales_ids = set(desafios_actuales)
-
-        # Determinar los desafíos a eliminar (los que están asociados pero no están en la nueva lista)
-        desafios_a_eliminar = desafios_actuales_ids - nuevos_desafios_ids
-        # Determinar los desafíos a agregar (los que están en la nueva lista pero no estaban asociados)
-        desafios_a_agregar = nuevos_desafios_ids - desafios_actuales_ids
-
-        # Actualizar desafíos asociados al curso
-        try:
-            with transaction.atomic():
-                # Eliminar los registros de desafíos que ya no deberían estar asociados
-                CursoDesafio.objects.filter(idcurso=curso, idproyecto__in=desafios_a_eliminar).delete()
-
-                # Agregar nuevos desafíos
-                nuevos_registros_desafios = [CursoDesafio(idcurso=curso, idproyecto=Desafio.objects.get(id=id)) for id in desafios_a_agregar]
-                CursoDesafio.objects.bulk_create(nuevos_registros_desafios)
-
-        except Exception as e:
-            return Response({"error": f"Error al actualizar desafíos: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-        # Obtener la lista actualizada de matriculados
-        matriculados_actualizados = UserCurso.objects.filter(idcurso=curso, rol=7).select_related('iduser')
+        # --- Respuesta actualizada ---
+        matriculados_actualizados = UserCurso.objects.filter(idcurso=curso, rol=7, eliminado=False).select_related('iduser')
         lista_matriculados = [
             {
                 "id": uc.iduser.id,
@@ -538,7 +515,6 @@ class UserCursoViewSet(SoftDeleteViewSet):
             for uc in matriculados_actualizados
         ]
 
-        # Obtener la lista actualizada de desafíos asociados al curso
         desafios_actualizados = CursoDesafio.objects.filter(idcurso=curso).select_related('idproyecto')
         lista_desafios = [
             {
@@ -553,7 +529,6 @@ class UserCursoViewSet(SoftDeleteViewSet):
             "matriculados": lista_matriculados,
             "desafios": lista_desafios
         }, status=status.HTTP_200_OK)
-        
         
     def get_serializer_class(self):
         """Permite cambiar el serializador según la acción."""
