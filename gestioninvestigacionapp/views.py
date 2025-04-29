@@ -1,3 +1,4 @@
+from django.db.models import Prefetch
 from rest_framework.viewsets import ModelViewSet
 from gestioninvestigacionapp.serializers import ActividadSerializer, ArchivoSerializer, ArchivoActividadesSerializer, ComponenteSerializer, ConvocatoriaSerializer, CursoSerializer, DepartamentoSerializer, DesafioSerializer, EntregableSerializer, EvaluacionSerializer, NotificcionesSerializer, PlantesisSerializer, PostulanteSerializer, PresupuestoSerializer, ReporteSerializer, RetroalimentacionSerializer, RetroalimentacionacttecnicaSerializer, RubricaSerializer, ActividadcronogramaSerializer, ActividadtecnicaSerializer, PostulacionPropuestaSerializer, UserCursoSerializer, UsuarioDesafioSerializer
 from gestioninvestigacionapp.serializers import *
@@ -119,7 +120,7 @@ class ActividadViewSet(SoftDeleteViewSet):
     queryset = Actividad.objects.order_by('pk')
     serializer_class = ActividadSerializer
     filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend, DateTimeIntervalFilter]
-    filterset_fields = ['idactividad', 'tipo', 'fechaentrega', 'fechacreacion', 'eliminado', 'estado', 'idproyecto', 'idproyecto__titulo']
+    filterset_fields = ['idactividad','idcreador' , 'tipo', 'fechaentrega', 'fechacreacion', 'eliminado', 'estado', 'idproyecto', 'idproyecto__titulo']
     search_fields = ['titulo', 'descripcion', 'idproyecto__titulo']
     
 class ArchivoViewSet(SoftDeleteViewSet):
@@ -216,6 +217,15 @@ class DesafioViewSet(SoftDeleteViewSet):
     filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend, DateTimeIntervalFilter]
     filterset_fields = ['idproyecto', 'estado', 'eliminado', 'fechacreacion', 'idconvocatoria', 'idconvocatoria__titulo']
     search_fields = ['titulo', 'descripcion', 'idconvocatoria__titulo']
+    
+    def get_queryset(self):
+        return Desafio.objects.order_by('pk').prefetch_related(
+            Prefetch(
+                'usuariodesafio_set',
+                queryset=UsuarioDesafio.objects.select_related('iduser').filter(eliminado=0),
+                to_attr='usuarios_desafio_prefetch'
+            )
+        )
     @action(detail=False, methods=['get'], url_path='desafios-por-usuario')
     def desafios_por_usuario(self, request):
         iduser = request.query_params.get('iduser')
@@ -300,7 +310,7 @@ class RetroalimentacionViewSet(SoftDeleteViewSet):
     queryset = Retroalimentacion.objects.order_by('pk')
     serializer_class = RetroalimentacionSerializer
     filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend, DateTimeIntervalFilter]
-    filterset_fields = ['idreporte', 'comentario']
+    filterset_fields = ['idactividad', 'comentario']
     search_fields = ['comentario']
 
 
@@ -719,10 +729,10 @@ class HistoriaexitoViewSet(SoftDeleteViewSet):
     
 
 class DetalleCompletoListView(generics.ListAPIView):
-    queryset = DetalleCompleto.objects.all()
+    queryset = DetallesCompletos.objects.all()
     filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend, DateTimeIntervalFilter]
-    serializer_class = DetalleCompletoSerializer
-    filterset_fields = ['idusuario', 'idcurso', 'iddesafio', 'idrol']  # Puedes agregar más
+    serializer_class = DetallesCompletosSerializer  # Puedes agregar más
+    filterset_class = DetallesCompletosFilter
     search_fields = ['nombre_usuario', 'titulo_curso', 'titulo_desafio']
 
 from django.db import connection

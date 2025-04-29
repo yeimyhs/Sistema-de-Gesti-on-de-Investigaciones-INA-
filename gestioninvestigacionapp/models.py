@@ -215,6 +215,7 @@ class ubigeoDistrito(SoftDeleteModel):
 class Actividad(SoftDeleteModel):
     fechacreacion = models.DateTimeField(auto_now_add=True)
     idactividad = models.BigAutoField(primary_key=True)
+    idcreador = models.ForeignKey(settings.AUTH_USER_MODEL, models.DO_NOTHING, db_column='iduser')
     idproyecto = models.ForeignKey('Desafio', models.DO_NOTHING, db_column='idproyecto')
     tipo = models.BigIntegerField(blank=True, null=True)
     titulo = models.CharField(max_length=255)
@@ -444,7 +445,7 @@ class Reporte(SoftDeleteModel):
 class Retroalimentacion(SoftDeleteModel):
     fechacreacion = models.DateTimeField(auto_now_add=True)
     idretroalimentacion = models.BigAutoField(primary_key=True)
-    idreporte = models.ForeignKey(Reporte, models.DO_NOTHING, db_column='idreporte', blank=True, null=True)
+    idactividad = models.ForeignKey(Actividad, models.DO_NOTHING, db_column='idactividad')
     comentario = models.TextField(blank=True, null=True)
 
     class Meta:
@@ -622,13 +623,6 @@ class UsuarioRolSistema(SoftDeleteModel):
 
 
 
-        
-        
-class DetalleCompleto(models.Model):
-    # Relación user_curso
-    user_curso_idrelacion = models.BigIntegerField()
-    class Meta:
-        managed = False  # Django no debe crear ni modificar esta tabla
         
         
 from django.db import models

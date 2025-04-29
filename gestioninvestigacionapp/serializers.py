@@ -34,7 +34,23 @@ class UserSimpleDetalleSerializer(ModelSerializer):
             
             "estado"
         ]
-
+class UsuarioSimpleSerializer(ModelSerializer):
+    class Meta:
+        #depth = 1
+        model = CustomUser
+        fields = [
+            'id',
+            "nombres",
+            "apellidos",
+            "telefono",
+            
+            "instituto",
+            "email",
+            "direccion",
+            
+            "gradoacademico",
+            
+        ]
 class OnlyDepartamentonombreSerializer(ModelSerializer):
 
     class Meta:
@@ -239,6 +255,8 @@ class ArchivoActividadesSerializer(ModelSerializer):
 
     
 class ActividadSerializer(ModelSerializer):
+    fechaentrega = serializers.DateTimeField(format="%d/%m/%Y %H:%M")
+    creador = UserSimpleDetalleSerializer(source='iduser',read_only=True)
     archivos = ArchivoActividadesSerializer(source='archivoactividades_set', many=True, read_only=True)
     class Meta:
         model = Actividad
@@ -364,10 +382,19 @@ class OnlyDesafioSerializer(ModelSerializer):
 class DesafioSerializer(ModelSerializer):
     archivos = ArchivoSerializer(source='archivo_set', many=True, read_only=True)
     idconvocatoriadetalle = ConvocatoriaOnlyDepSerializer(source='idconvocatoria', many=False, required=False, read_only=True)
-
+    jurados = serializers.SerializerMethodField()
+    asesores = serializers.SerializerMethodField()
     class Meta:
         model = Desafio
         fields = '__all__'
+    
+    def get_jurados(self, obj):
+        usuarios = UsuarioDesafio.objects.filter(idproyecto=obj, rol=9, eliminado=0).select_related('iduser')
+        return UsuarioSimpleSerializer([u.iduser for u in usuarios], many=True).data
+
+    def get_asesores(self, obj):
+        usuarios = UsuarioDesafio.objects.filter(idproyecto=obj, rol=10, eliminado=0).select_related('iduser')
+        return UsuarioSimpleSerializer([u.iduser for u in usuarios], many=True).data
         
     def create(self, validated_data):
         request = self.context['request']
@@ -811,12 +838,28 @@ class DesafiosUsuarioConCursoSerializer(serializers.Serializer):
     relaciones_curso = RelacionUsuarioCursoSerializer(many=True)
 
 
-class DetalleCompletoSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = DetalleCompleto
-        fields = '__all__'
-        
-class DetallesCompletosSerializer(serializers.ModelSerializer):
+class DetallesCompletosSerializer(serializers.Serializer):
     class Meta:
         model = DetallesCompletos
-        fields = '__all__'
+        fields = [
+            'user_curso_idrelacion',
+            'idcurso',
+            'titulo_curso',
+            'nivel_curso',
+            'anioacademico_curso',
+            'semestre_curso',
+            'estado_curso',
+            'idusuario',
+            'nombre_usuario',
+            'apellidos_usuario',
+            'telefono_usuario',
+            'email_usuario',
+            'usuario_rol_idrelacion',
+            'idrol',
+            'nombre_rol',
+            'curso_desafio_idrelacion',
+            'usuario_desafio_idrelacion',
+            'iddesafio',
+            'titulo_desafio',
+            'descripcion_desafio',
+        ]
