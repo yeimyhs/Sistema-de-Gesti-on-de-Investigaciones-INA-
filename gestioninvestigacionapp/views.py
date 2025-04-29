@@ -728,13 +728,6 @@ class HistoriaexitoViewSet(SoftDeleteViewSet):
     search_fields = ['historia','nombre', 'cargo', 'estado']
     
 
-class DetalleCompletoListView(generics.ListAPIView):
-    queryset = DetallesCompletos.objects.all()
-    filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend, DateTimeIntervalFilter]
-    serializer_class = DetallesCompletosSerializer  # Puedes agregar más
-    filterset_class = DetallesCompletosFilter
-    search_fields = ['nombre_usuario', 'titulo_curso', 'titulo_desafio']
-
 from django.db import connection
 from rest_framework.views import APIView
 

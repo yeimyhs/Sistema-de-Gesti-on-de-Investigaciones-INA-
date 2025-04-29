@@ -87,10 +87,28 @@ class DetallesCompletosFilter(filters.FilterSet):
     # Opcionalmente puedes definir filtros personalizados aquí
     # Por ejemplo:
     # nivel_curso = filters.CharFilter(lookup_expr='icontains')
-    idusuario = django_filters.NumberFilter()
-    idcurso = django_filters.NumberFilter()
-    iddesafio = django_filters.NumberFilter()
-    idrol = django_filters.NumberFilter()
+    
     class Meta:
         model = DetallesCompletos
-        fields = []
+        fields = [
+    "user_curso_idrelacion",
+    "idcurso",
+    "titulo_curso",
+    "nivel_curso",
+    "anioacademico_curso",
+    "semestre_curso",
+    "estado_curso",
+    "idusuario",
+    "nombre_usuario",
+    "apellidos_usuario",
+    "telefono_usuario",
+    "email_usuario",
+    "usuario_rol_idrelacion",
+    "idrol",
+    "nombre_rol",
+    "curso_desafio_idrelacion",
+    "usuario_desafio_idrelacion",
+    "iddesafio",
+    "titulo_desafio",
+    "descripcion_desafio"
+]

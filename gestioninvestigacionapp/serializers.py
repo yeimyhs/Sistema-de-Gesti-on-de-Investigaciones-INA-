@@ -838,28 +838,7 @@ class DesafiosUsuarioConCursoSerializer(serializers.Serializer):
     relaciones_curso = RelacionUsuarioCursoSerializer(many=True)
 
 
-class DetallesCompletosSerializer(serializers.Serializer):
+class DetallesCompletosSerializer(serializers.ModelSerializer):
     class Meta:
         model = DetallesCompletos
-        fields = [
-            'user_curso_idrelacion',
-            'idcurso',
-            'titulo_curso',
-            'nivel_curso',
-            'anioacademico_curso',
-            'semestre_curso',
-            'estado_curso',
-            'idusuario',
-            'nombre_usuario',
-            'apellidos_usuario',
-            'telefono_usuario',
-            'email_usuario',
-            'usuario_rol_idrelacion',
-            'idrol',
-            'nombre_rol',
-            'curso_desafio_idrelacion',
-            'usuario_desafio_idrelacion',
-            'iddesafio',
-            'titulo_desafio',
-            'descripcion_desafio',
-        ]
+        fields = '__all__'
