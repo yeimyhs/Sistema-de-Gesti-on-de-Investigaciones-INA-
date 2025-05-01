@@ -220,7 +220,7 @@ class Actividad(SoftDeleteModel):
     tipo = models.BigIntegerField(blank=True, null=True)
     titulo = models.CharField(max_length=255)
     descripcion = models.TextField()
-    fechaentrega = models.DateField()
+    fechaentrega = models.DateTimeField()
     estado = models.SmallIntegerField()
 
     class Meta:
