@@ -312,7 +312,6 @@ class Curso(SoftDeleteModel):
     #coordinador = models.CharField(max_length=255, blank=True, null=True)
     estado = models.SmallIntegerField()
     iddepartamento = models.ForeignKey('Departamento', models.DO_NOTHING, db_column='iddepartamento', blank=True, null=True)
-    idrubrica = models.ForeignKey('Rubrica', models.DO_NOTHING, blank=True, null=True)
 
     class Meta:
         db_table = 'Curso'
@@ -466,6 +465,7 @@ class Rubrica(SoftDeleteModel):
     descripcion = models.TextField( blank=True, null=True)
     fechacreacion = models.DateTimeField(auto_now_add=True)
     idrubrica = models.BigAutoField(primary_key=True)
+    idcurso = models.ForeignKey(Curso, models.DO_NOTHING, db_column='idcurso')
 
     class Meta:
         db_table = 'Rubrica'
