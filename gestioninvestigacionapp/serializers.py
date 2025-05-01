@@ -204,20 +204,19 @@ class CustomAuthTokenSerializer(serializers.Serializer):
 
         # Autenticar al usuario
         #user = authenticate(email=email, password=password)
-        user = User.objects.filter(email=email).first()
+       
+        user = authenticate(request=self.context.get('request'), username=email, password=password)
 
-        if user and user.check_password(password):
-            # Validar credenciales inválidas
-            if not user:
-                raise serializers.ValidationError(
-                    {
-                        "error": {
-                            "code": "invalid_credentials",
-                            "message": "Las credenciales proporcionadas no son válidas. Por favor, intente de nuevo."
-                        }
-                    },
-                    code="authorization",
-                )
+        if not user:
+            raise serializers.ValidationError(
+                {
+                    "error": {
+                        "code": "invalid_credentials",
+                        "message": "Las credenciales proporcionadas no son válidas. Por favor, intente de nuevo."
+                    }
+                },
+                code="authorization",
+            )
 
             # Verificar si la cuenta está deshabilitada
             if user.eliminado:
