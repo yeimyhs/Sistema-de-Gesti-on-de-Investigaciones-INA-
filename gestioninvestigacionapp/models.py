@@ -632,7 +632,7 @@ class DetallesManager(models.Manager):
         from django.db import connection
         with connection.cursor() as cursor:
             #cursor.execute("SELECT * FROM traer_detalles_completos_18()")
-            cursor.execute("SELECT * FROM traer_detalles_completos_ordenado4()")
+            cursor.execute("SELECT * FROM traer_detalles_completos_ordenado5()")
             columns = [col[0] for col in cursor.description]
             return [
                 dict(zip(columns, row))
@@ -673,6 +673,13 @@ class DetallesCompletos(models.Model):
     iddesafio = models.BigIntegerField()
     titulo_desafio = models.TextField()
     descripcion_desafio = models.TextField()
+
+    personalequiposcriticos = models.TextField(blank=True, null=True)
+    razon = models.TextField(blank=True, null=True)
+    requerimientominimos = models.TextField(blank=True, null=True)
+    imagen = models.ImageField(upload_to='desafioimagen/', blank=True, null=True)
+    areasinvestigacion = models.TextField(blank=True, null=True)
+
 
     objects = models.Manager()  # Manager predeterminado
     detalles = DetallesManager()
