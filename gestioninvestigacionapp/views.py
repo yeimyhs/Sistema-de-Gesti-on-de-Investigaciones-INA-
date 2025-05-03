@@ -591,7 +591,7 @@ class UsuarioDesafioViewSet(SoftDeleteViewSet):
     queryset = UsuarioDesafio.objects.order_by('pk')
     serializer_class = UsuarioDesafioSerializer
     filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend, DateTimeIntervalFilter]
-    filterset_fields = ['iduser', 'idproyecto', 'iduser_id__nombres', 'idproyecto__titulo']
+    filterset_fields = ['iduser', 'idproyecto', 'iduser_id__nombres', 'idproyecto__titulo','rol']
     search_fields = ['iduser__nombres', 'idproyecto__titulo']
 
     def get_serializer_class(self):
