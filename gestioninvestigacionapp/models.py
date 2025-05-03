@@ -631,7 +631,8 @@ class DetallesManager(models.Manager):
     def get_from_procedure(self):
         from django.db import connection
         with connection.cursor() as cursor:
-            cursor.execute("SELECT * FROM traer_detalles_completos_18()")
+            #cursor.execute("SELECT * FROM traer_detalles_completos_18()")
+            cursor.execute("SELECT * FROM traer_detalles_completos_ordenado4()")
             columns = [col[0] for col in cursor.description]
             return [
                 dict(zip(columns, row))
