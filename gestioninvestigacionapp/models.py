@@ -15,6 +15,11 @@ from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.db import models
 
 class SoftDeleteQuerySet(models.QuerySet):
+    def reactivate(self):
+        """Reactivar un curso desafío eliminado."""
+        self.eliminado = False
+        self.save()
+        
     def delete(self):
         """Borrado lógico en consultas bulk."""
         return super().update(eliminado=1)
@@ -582,7 +587,8 @@ class UserCurso(SoftDeleteModel):
         #unique_together = (
         #    ('iduser', 'idcurso'),)
 
-
+from rest_framework import status
+from rest_framework.response import Response
 class CursoDesafio(SoftDeleteModel):
     id =  models.BigAutoField(primary_key=True)
     idproyecto = models.ForeignKey(Desafio, models.DO_NOTHING, db_column='idproyecto')
@@ -590,11 +596,73 @@ class CursoDesafio(SoftDeleteModel):
     fechacreacion = models.DateTimeField(auto_now_add=True)
     idcurso = models.ForeignKey(Curso, models.DO_NOTHING, db_column='idcurso')
     idplanformacion = models.ForeignKey(Plantesis, models.DO_NOTHING, blank=True, null=True)
-    
+    idjurado1 = models.ForeignKey(settings.AUTH_USER_MODEL, models.DO_NOTHING, db_column='idjurado1', blank=True, null=True, related_name='cursodesafio_j1')
+    idjurado2 = models.ForeignKey(settings.AUTH_USER_MODEL, models.DO_NOTHING, db_column='idjurado2', blank=True, null=True, related_name='cursodesafio_j2')
+    idjurado3 = models.ForeignKey(settings.AUTH_USER_MODEL, models.DO_NOTHING, db_column='idjurado3', blank=True, null=True, related_name='cursodesafio_j3')
 
     class Meta:
         db_table = 'curso_desafio'
-        unique_together = (('idproyecto', 'idcurso'),)
+        unique_together = (('idproyecto', 'idcurso'),('idjurado1', 'idjurado2', 'idjurado3'))
+     
+
+    
+    def save(self, *args, **kwargs):
+        # Si es un nuevo registro, intentamos reutilizar el eliminado
+        if self.pk is None:
+            # Buscar si existe un registro eliminado con el mismo idproyecto y idcurso
+            existente = CursoDesafio.objects.filter(
+                idproyecto=self.idproyecto,
+                idcurso=self.idcurso,
+                eliminado=True
+            ).first()
+
+            if existente:
+                # Si se encuentra un registro eliminado, actualizamos los datos y reactivamos el registro
+                self.pk = existente.pk
+                self.eliminado = False  # Reactivar el registro
+                super().save(*args, **kwargs)
+                return
+
+        # Si no existe el registro eliminado, entonces creamos uno nuevo
+        super().save(*args, **kwargs)
+        self._actualizar_roles_jurado()
+    def _actualizar_roles_jurado(self):
+
+        jurados = [
+            self.idjurado1,
+            self.idjurado2,
+            self.idjurado3
+        ]
+
+        # Obtener jurados anteriores si este objeto ya existía
+        try:
+            antiguo = CursoDesafio.objects.get(pk=self.pk)
+        except CursoDesafio.DoesNotExist:
+            antiguo = None
+
+        jurados_anteriores = set([
+            getattr(antiguo, 'idjurado1', None),
+            getattr(antiguo, 'idjurado2', None),
+            getattr(antiguo, 'idjurado3', None),
+        ]) if antiguo else set()
+
+        jurados_actuales = set([j for j in jurados if j is not None])
+
+        jurados_reemplazados = jurados_anteriores - jurados_actuales
+
+        # Eliminar roles si ya no son jurados de este desafío
+        for jurado in jurados_reemplazados:
+            UsuarioRolSistema.objects.filter(
+                iduser=jurado,
+                idrol_id=10
+            ).delete()
+
+        # Crear roles si no existen para este desafío
+        for jurado in jurados_actuales:
+            UsuarioRolSistema.objects.get_or_create(
+                iduser=jurado,
+                idrol_id=10
+            )
 
 
 class UsuarioDesafio(SoftDeleteModel):

@@ -570,10 +570,16 @@ from django_filters import rest_framework as dfilters
 # Define un filtro personalizado
 class CursoDesafioFilter(FilterSet):
     idcursos = dfilters.BaseInFilter(field_name='idcurso', lookup_expr='in')
+    jurado = dfilters.NumberFilter(method='filter_by_jurado')
     
     class Meta:
         model = CursoDesafio
         fields = ['idproyecto', 'idcurso', 'iddatostecnicos', 'idplanformacion', 'idcurso__titulo']
+    def filter_by_jurado(self, queryset, name, value):
+        return queryset.filter(
+            Q(idjurado1=value) | Q(idjurado2=value) | Q(idjurado3=value)
+        )
+
 
 class CursoDesafioViewSet(SoftDeleteViewSet):
     queryset = CursoDesafio.objects.select_related(
@@ -609,8 +615,8 @@ class UsuarioDesafioViewSet(SoftDeleteViewSet):
         queryset = self.filter_queryset(queryset)
         
         serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data) 
-    
+        return Response(serializer.data)
+
 class EstadoViewSet(SoftDeleteViewSet):
     queryset = Estado.objects.order_by('pk')
     serializer_class = EstadoSerializer

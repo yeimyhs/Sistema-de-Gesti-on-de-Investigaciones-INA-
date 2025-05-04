@@ -388,11 +388,11 @@ class DesafioSerializer(ModelSerializer):
         fields = '__all__'
     
     def get_jurados(self, obj):
-        usuarios = UsuarioDesafio.objects.filter(idproyecto=obj, rol=9, eliminado=0).select_related('iduser')
+        usuarios = UsuarioDesafio.objects.filter(idproyecto=obj, rol=10, eliminado=0).select_related('iduser')
         return UsuarioSimpleSerializer([u.iduser for u in usuarios], many=True).data
 
     def get_asesores(self, obj):
-        usuarios = UsuarioDesafio.objects.filter(idproyecto=obj, rol=10, eliminado=0).select_related('iduser')
+        usuarios = UsuarioDesafio.objects.filter(idproyecto=obj, rol=9, eliminado=0).select_related('iduser')
         return UsuarioSimpleSerializer([u.iduser for u in usuarios], many=True).data
         
     def create(self, validated_data):
