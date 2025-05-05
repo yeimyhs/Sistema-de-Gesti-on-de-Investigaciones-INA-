@@ -299,7 +299,8 @@ class ActividadSerializer(ModelSerializer):
         # ✅ Guardar cambios en la instancia antes de manejar archivos
         instance.save()
 
-        instance.archivo_set.all().delete()
+        instance.archivoactividades_set.all().delete()
+
 
         # 📂 Agregar nuevos archivos con nombres personalizados
         for archivo, archivonombre in zip(archivos_data, archivosnombres_data):
