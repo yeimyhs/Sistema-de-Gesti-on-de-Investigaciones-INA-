@@ -437,6 +437,7 @@ class Retroalimentacion(SoftDeleteModel):
     idretroalimentacion = models.BigAutoField(primary_key=True)
     idactividad = models.ForeignKey(Actividad, models.DO_NOTHING, db_column='idactividad')
     comentario = models.TextField(blank=True, null=True)
+    idusercreador = models.ForeignKey(settings.AUTH_USER_MODEL, models.DO_NOTHING, db_column='idusercreador')
 
     class Meta:
         db_table = 'Retroalimentacion'
@@ -447,6 +448,7 @@ class Retroalimentacionacttecnica(SoftDeleteModel):
     idretroalimentacion = models.BigAutoField(primary_key=True)
     identregable = models.ForeignKey(Entregable, models.DO_NOTHING, db_column='identregable', blank=True, null=True)
     comentario = models.TextField(blank=True, null=True)
+    idusercreador = models.ForeignKey(settings.AUTH_USER_MODEL, models.DO_NOTHING, db_column='idusercreador')
 
     class Meta:
         db_table = 'Retroalimentacionacttecnica'

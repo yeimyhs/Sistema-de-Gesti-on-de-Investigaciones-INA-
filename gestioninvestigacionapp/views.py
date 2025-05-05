@@ -332,7 +332,7 @@ class RetroalimentacionViewSet(SoftDeleteViewSet):
     queryset = Retroalimentacion.objects.order_by('pk')
     serializer_class = RetroalimentacionSerializer
     filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend, DateTimeIntervalFilter]
-    filterset_fields = ['idactividad', 'comentario']
+    filterset_fields = ['idactividad', 'comentario','idusercreador']
     search_fields = ['comentario']
 
 
@@ -340,7 +340,7 @@ class RetroalimentacionacttecnicaViewSet(SoftDeleteViewSet):
     queryset = Retroalimentacionacttecnica.objects.order_by('pk')
     serializer_class = RetroalimentacionacttecnicaSerializer
     filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend, DateTimeIntervalFilter]
-    filterset_fields = ['identregable', 'comentario']
+    filterset_fields = ['identregable', 'comentario','idusercreador']
     search_fields = ['comentario']
 
 class RubricaViewSet(SoftDeleteViewSet):
