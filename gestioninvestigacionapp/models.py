@@ -366,20 +366,6 @@ class Entregable(SoftDeleteModel):
         db_table = 'Entregable'
 
 
-class Evaluacion(SoftDeleteModel):
-    fechacreacion = models.DateTimeField(auto_now_add=True)
-    idevaluacion = models.BigAutoField(primary_key=True)
-    comentario = models.TextField()
-    pionero = models.FloatField()
-    rentable = models.FloatField()
-    practico = models.FloatField()
-    total = models.FloatField()
-    idplanformacion = models.ForeignKey('Plantesis', models.DO_NOTHING, db_column='idplanformacion', blank=True, null=True)
-
-    class Meta:
-        db_table = 'Evaluacion'
-
-
 class Notificciones(SoftDeleteModel):
     fechacreacion = models.DateTimeField(auto_now_add=True)
     idnotificacion = models.BigAutoField(primary_key=True)
@@ -481,12 +467,23 @@ class Criterio(SoftDeleteModel):
     titulo = models.CharField(max_length=255)
     descripcion = models.TextField( blank=True, null=True)
     peso = models.FloatField()
-    puntaje = models.FloatField()
     idrubrica = models.ForeignKey(Rubrica, models.DO_NOTHING, blank=True, null=True)
 
     class Meta:
         db_table = 'Criterio'
 
+
+class Evaluacion(SoftDeleteModel):
+    fechacreacion = models.DateTimeField(auto_now_add=True)
+    idevaluacion = models.BigAutoField(primary_key=True)
+    iduserevaluador = models.ForeignKey(settings.AUTH_USER_MODEL, models.DO_NOTHING, db_column='iduserevaluador')
+    idrubrica = models.ForeignKey(Rubrica, models.DO_NOTHING, blank=True, null=True)
+    comentario = models.TextField(blank=True, null=True)
+    total = models.FloatField(blank=True, null=True)
+    idplanformacion = models.ForeignKey('Plantesis', models.DO_NOTHING, db_column='idplanformacion', blank=True, null=True)
+
+    class Meta:
+        db_table = 'Evaluacion'
 
 
 class Actividadcronograma(SoftDeleteModel):
@@ -571,7 +568,18 @@ class PostulacionPropuesta(SoftDeleteModel):
     class Meta:
         db_table = 'postulacion_propuesta'
 
+class EvaluacionCriterio(SoftDeleteModel):
+    id =  models.BigAutoField(primary_key=True)
+    fechacreacion = models.DateTimeField(auto_now_add=True)
+    idcriterio = models.ForeignKey(Criterio, models.DO_NOTHING, db_column='idcriterio')
+    idevaluacion = models.ForeignKey(Evaluacion, models.DO_NOTHING, db_column='idevaluacion')
+    puntaje = models.FloatField()
 
+    class Meta:
+        db_table = 'evaluacion_criterio'
+        unique_together = (('idcriterio', 'idevaluacion'),) 
+        
+        
 class UserCurso(SoftDeleteModel):
     id =  models.BigAutoField(primary_key=True)
     

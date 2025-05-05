@@ -262,8 +262,30 @@ class EvaluacionViewSet(SoftDeleteViewSet):
     queryset = Evaluacion.objects.order_by('pk')
     serializer_class = EvaluacionSerializer
     filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend, DateTimeIntervalFilter]
-    filterset_fields = ['idevaluacion', 'idplanformacion', 'idplanformacion__titulo']
+    filterset_fields = ['idevaluacion', 'idplanformacion', 'idplanformacion__titulo', 'idrubrica', 'iduserevaluador']
     search_fields = ['comentario', 'idplanformacion__titulo']
+    def get_queryset(self):
+        return Evaluacion.objects.select_related(
+            'idrubrica'  # FK directa a Rubrica
+        ).prefetch_related(
+            # Cargar criterios evaluados con su criterio relacionado
+            Prefetch(
+                'evaluacioncriterio_set',
+                queryset=EvaluacionCriterio.objects.select_related('idcriterio')
+            ),
+            # Cargar los criterios de la rúbrica (si la rúbrica tiene M2M o FK a criterio)
+            Prefetch(
+                'idrubrica__criterio_set',  # Esto depende de tu modelo Rubrica
+                queryset=Criterio.objects.all()
+            )
+        )
+class EvaluacionCriterioViewSet(SoftDeleteViewSet):
+    queryset = EvaluacionCriterio.objects.order_by('pk')
+    serializer_class = EvaluacionCriterioSerializer
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend, DateTimeIntervalFilter]
+    filterset_fields = ['idevaluacion', 'idcriterio', 'puntaje']
+    search_fields = [ 'idcriterio__titulo']
+
 
 class NotificcionesViewSet(SoftDeleteViewSet):
     queryset = Notificciones.objects.order_by('pk')
@@ -332,8 +354,8 @@ class CriterioViewSet(SoftDeleteViewSet):
     queryset = Criterio.objects.order_by('pk')
     serializer_class = CriterioSerializer
     filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend, DateTimeIntervalFilter]
-    filterset_fields = ['titulo','descripcion',"peso",'puntaje','idrubrica'  ]
-    search_fields = ['titulo','descripcion',"peso",'puntaje' ]
+    filterset_fields = ['titulo','descripcion',"peso",'idrubrica'  ]
+    search_fields = ['titulo','descripcion',"peso"]
 
 class UserViewSet(SoftDeleteViewSet):
     queryset = CustomUser.objects.prefetch_related('usuariorolsistema_set__idrol').all().order_by('pk')

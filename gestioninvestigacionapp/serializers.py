@@ -613,11 +613,6 @@ class EntregableSerializer(ModelSerializer):
         fields = '__all__'
 
 
-class EvaluacionSerializer(ModelSerializer):
-
-    class Meta:
-        model = Evaluacion
-        fields = '__all__'
 
 
 class NotificcionesSerializer(ModelSerializer):
@@ -669,10 +664,25 @@ class RetroalimentacionacttecnicaSerializer(ModelSerializer):
         fields = '__all__'
 
 
+
+
 class CriterioSerializer(ModelSerializer):
 
     class Meta:
         model = Criterio
+        fields = '__all__'
+
+class EvaluacionCriterioSerializer(ModelSerializer):
+    criterio = CriterioSerializer(source='idcriterio',read_only=True)
+
+    class Meta:
+        model = EvaluacionCriterio
+        fields = '__all__'
+
+class OnlyEvaluacionCriterioSerializer(ModelSerializer):
+
+    class Meta:
+        model = EvaluacionCriterio
         fields = '__all__'
 
 
@@ -686,6 +696,20 @@ class RubricaSerializer(ModelSerializer):
     def get_criterios(self, obj):
         criterios = Criterio.objects.filter(idrubrica=obj)
         return CriterioSerializer(criterios, many=True).data
+
+
+
+class EvaluacionSerializer(ModelSerializer):
+    rubrica = RubricaSerializer(source='idrubrica',read_only=True)
+    criteriosevaluados = serializers.SerializerMethodField()
+    class Meta:
+        model = Evaluacion
+        fields = '__all__'
+        
+    def get_criteriosevaluados(self, obj):
+        criteriosevaluados = EvaluacionCriterio.objects.filter(idevaluacion=obj)
+        return OnlyEvaluacionCriterioSerializer(criteriosevaluados, many=True).data
+
 
 
 
