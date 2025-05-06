@@ -346,10 +346,15 @@ class ComponenteSerializer(ModelSerializer):
 
 
 class DatosTecnicosSerializer(ModelSerializer):
+    componentes = serializers.SerializerMethodField()
 
     class Meta:
         model = DatosTecnicos
         fields = '__all__'
+
+    def get_componentes(self, obj):
+        componentes = Componente.objects.filter(iddatostecnicos=obj)
+        return ComponenteSerializer(componentes, many=True).data
 
 
 class ActividadcronogramaSerializer(ModelSerializer):
@@ -366,11 +371,13 @@ class DepartamentoSerializer(ModelSerializer):
         model = Departamento
         fields = '__all__'
 
+
 class ConvocatoriaOnlyDepSerializer(ModelSerializer):
     departamentodetalle = DepartamentoSerializer(source='iddepartamento', many=False, required=False)
     class Meta:
         model = Convocatoria
         fields = '__all__'
+
 
 class OnlyDesafioSerializer(ModelSerializer):
 

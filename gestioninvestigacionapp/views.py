@@ -149,7 +149,7 @@ class DatosTecnicosViewSet(SoftDeleteViewSet):
     queryset = DatosTecnicos.objects.order_by('pk')
     serializer_class = DatosTecnicosSerializer
     filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend, DateTimeIntervalFilter]
-    filterset_fields = ['descripcion']
+    filterset_fields = ['descripcion','idcursodesafio']
     search_fields = ['descripcion']
     
 from django_filters import rest_framework as dfilters
@@ -596,7 +596,7 @@ class CursoDesafioFilter(FilterSet):
     
     class Meta:
         model = CursoDesafio
-        fields = ['idproyecto', 'idcurso', 'iddatostecnicos', 'idplanformacion', 'idcurso__titulo']
+        fields = ['idproyecto', 'idcurso', 'idplanformacion', 'idcurso__titulo']
     def filter_by_jurado(self, queryset, name, value):
         return queryset.filter(
             Q(idjurado1=value) | Q(idjurado2=value) | Q(idjurado3=value)

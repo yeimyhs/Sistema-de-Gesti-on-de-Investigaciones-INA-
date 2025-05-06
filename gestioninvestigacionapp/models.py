@@ -262,6 +262,7 @@ class DatosTecnicos(SoftDeleteModel):
     descripcion = models.TextField( blank=True, null=True)
     fechacreacion = models.DateTimeField(auto_now_add=True)
     iddatostecnicos = models.BigAutoField(primary_key=True)
+    idcursodesafio = models.ForeignKey('CursoDesafio', models.DO_NOTHING, db_column='idcursodesafio')
 
     class Meta:
         db_table = 'DatosTecnicos'
@@ -602,7 +603,6 @@ from rest_framework.response import Response
 class CursoDesafio(SoftDeleteModel):
     id =  models.BigAutoField(primary_key=True)
     idproyecto = models.ForeignKey(Desafio, models.DO_NOTHING, db_column='idproyecto')
-    iddatostecnicos = models.ForeignKey(DatosTecnicos, models.DO_NOTHING, blank=True, null=True)
     fechacreacion = models.DateTimeField(auto_now_add=True)
     idcurso = models.ForeignKey(Curso, models.DO_NOTHING, db_column='idcurso')
     idplanformacion = models.ForeignKey(Plantesis, models.DO_NOTHING, blank=True, null=True)
