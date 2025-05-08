@@ -592,6 +592,9 @@ class CursoCoordinadorSerializer(serializers.ModelSerializer):
 class CursoDesafioSerializer(ModelSerializer):
     cursodetalle = OnlyCursoSerializer(source='idcurso', many=False, required=False, read_only=True)
     desafiodetalle = OnlyDesafioSerializer(source='idproyecto', many=False, required=False, read_only=True)
+    jurado1detalle = UsuarioSimpleSerializer(source='idjurado1',read_only=True)
+    jurado2detalle = UsuarioSimpleSerializer(source='idjurado2',read_only=True)
+    jurado3detalle = UsuarioSimpleSerializer(source='idjurado3',read_only=True)
 
     class Meta:
         model = CursoDesafio
