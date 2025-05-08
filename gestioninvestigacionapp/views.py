@@ -1033,7 +1033,7 @@ class ProcedimientoModelViewSet(viewsets.ModelViewSet):
         
         # Filtrar por cada parámetro excepto los especiales
         for param, value in request.query_params.items():
-            if param not in ['search', 'ordering', 'page', 'page_size', 'format']:
+            if param not in ['search', 'ordering', 'page', 'page_size', 'limit', 'format']:
                 # Antes del filtrado
                 count_before = len(filtered_results)
                 print(f"Filtrando por {param}={value}, resultados antes: {count_before}")
