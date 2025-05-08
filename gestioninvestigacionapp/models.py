@@ -456,11 +456,12 @@ class Retroalimentacionacttecnica(SoftDeleteModel):
 
 
 class Rubrica(SoftDeleteModel):
+    titulo = models.CharField(max_length=255)
     descripcion = models.TextField( blank=True, null=True)
     fechacreacion = models.DateTimeField(auto_now_add=True)
     idrubrica = models.BigAutoField(primary_key=True)
     idcurso = models.ForeignKey(Curso, models.DO_NOTHING, db_column='idcurso')
-
+    peso = models.FloatField()
     class Meta:
         db_table = 'Rubrica'
 
@@ -469,7 +470,7 @@ class Criterio(SoftDeleteModel):
     idcriterio = models.BigAutoField(primary_key=True)
     titulo = models.CharField(max_length=255)
     descripcion = models.TextField( blank=True, null=True)
-    peso = models.FloatField()
+    puntaje = models.FloatField()
     idrubrica = models.ForeignKey(Rubrica, models.DO_NOTHING, blank=True, null=True)
 
     class Meta:
@@ -576,7 +577,7 @@ class EvaluacionCriterio(SoftDeleteModel):
     fechacreacion = models.DateTimeField(auto_now_add=True)
     idcriterio = models.ForeignKey(Criterio, models.DO_NOTHING, db_column='idcriterio')
     idevaluacion = models.ForeignKey(Evaluacion, models.DO_NOTHING, db_column='idevaluacion')
-    puntaje = models.FloatField()
+    #puntaje = models.FloatField()
 
     class Meta:
         db_table = 'evaluacion_criterio'
