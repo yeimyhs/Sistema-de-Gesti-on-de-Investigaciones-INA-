@@ -272,6 +272,7 @@ class Componente(SoftDeleteModel):
     fechacreacion = models.DateTimeField(auto_now_add=True)
     idcomponente = models.BigAutoField(primary_key=True)
     numero = models.BigIntegerField()
+    titulo = models.TextField( blank=True, null=True)
     iddatostecnicos = models.ForeignKey(DatosTecnicos, models.DO_NOTHING, db_column='idproyecto', blank=True, null=True)
 
     class Meta:

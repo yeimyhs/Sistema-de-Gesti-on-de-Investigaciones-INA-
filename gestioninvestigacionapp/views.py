@@ -146,10 +146,10 @@ class ComponenteViewSet(SoftDeleteViewSet):
     search_fields = ['iddatostecnicos__descripcion']
 
 class DatosTecnicosViewSet(SoftDeleteViewSet):
-    queryset = DatosTecnicos.objects.order_by('pk')
+    queryset = DatosTecnicos.objects.select_related('idcursodesafio').order_by('pk')
     serializer_class = DatosTecnicosSerializer
     filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend, DateTimeIntervalFilter]
-    filterset_fields = ['descripcion','idcursodesafio']
+    filterset_fields = ['descripcion','idcursodesafio', 'idcursodesafio__idproyecto']
     search_fields = ['descripcion']
     
 from django_filters import rest_framework as dfilters
