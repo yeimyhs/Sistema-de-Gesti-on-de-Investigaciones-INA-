@@ -463,6 +463,9 @@ class Rubrica(SoftDeleteModel):
     idrubrica = models.BigAutoField(primary_key=True)
     idcurso = models.ForeignKey(Curso, models.DO_NOTHING, db_column='idcurso')
     peso = models.FloatField()
+    tipo = models.SmallIntegerField()
+    nroorden = models.SmallIntegerField()
+    
     class Meta:
         db_table = 'Rubrica'
 
