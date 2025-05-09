@@ -426,7 +426,7 @@ class Reporte(SoftDeleteModel):
     fechacreacion = models.DateTimeField(auto_now_add=True)
     idreporte = models.BigAutoField(primary_key=True)
     evaluacionnota = models.BigIntegerField(blank=True, null=True)
-    pdf = models.BigIntegerField(blank=True, null=True)
+    pdf = models.FileField(upload_to='ReporteAnexo/', blank=True, null=True)
     idactividad = models.ForeignKey(Actividad, models.DO_NOTHING, db_column='idactividad', blank=True, null=True)
 
     class Meta:
