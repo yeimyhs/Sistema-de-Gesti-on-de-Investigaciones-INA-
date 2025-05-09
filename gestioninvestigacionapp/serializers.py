@@ -255,7 +255,7 @@ class ArchivoActividadesSerializer(ModelSerializer):
     
 class ActividadSerializer(ModelSerializer):
     fechaentrega = serializers.DateTimeField(format="%d/%m/%Y %H:%M")
-    creador = UserSimpleDetalleSerializer(source='iduser',read_only=True)
+    creador = UserSimpleDetalleSerializer(source='idcreador',read_only=True)
     archivos = ArchivoActividadesSerializer(source='archivoactividades_set', many=True, read_only=True)
     class Meta:
         model = Actividad
@@ -662,6 +662,7 @@ class ReporteSerializer(ModelSerializer):
 
 
 class RetroalimentacionSerializer(ModelSerializer):
+    usercreador = UserSimpleDetalleSerializer(source='idusercreador',read_only=True)
 
     class Meta:
         model = Retroalimentacion
@@ -669,6 +670,7 @@ class RetroalimentacionSerializer(ModelSerializer):
 
 
 class RetroalimentacionacttecnicaSerializer(ModelSerializer):
+    usercreador = UserSimpleDetalleSerializer(source='idusercreador',read_only=True)
 
     class Meta:
         model = Retroalimentacionacttecnica
