@@ -347,7 +347,7 @@ class RubricaViewSet(SoftDeleteViewSet):
     queryset = Rubrica.objects.order_by('pk')
     serializer_class = RubricaSerializer
     filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend, DateTimeIntervalFilter]
-    filterset_fields = ['descripcion','titulo','idcurso', "peso"]
+    filterset_fields = ['descripcion','titulo','idcurso', "peso", 'nroorden', 'tipo']
     search_fields = ['descripcion', 'titulo']
     
 class CriterioViewSet(SoftDeleteViewSet):
