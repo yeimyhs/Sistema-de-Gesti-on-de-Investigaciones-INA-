@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'drf_yasg',
     'corsheaders',
     'django_filters',
+    'channels',
     
     'gestioninvestigacionapp'
 ]
@@ -86,6 +87,13 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'SGI.wsgi.application'
+ASGI_APPLICATION = 'SGI.asgi.application'
+
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels.layers.InMemoryChannelLayer"
+    },
+}
 
 load_dotenv()
 # Database

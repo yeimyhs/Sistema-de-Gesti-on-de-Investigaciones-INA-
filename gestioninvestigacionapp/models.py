@@ -368,6 +368,10 @@ class Entregable(SoftDeleteModel):
         db_table = 'Entregable'
 
 
+# tu_app_notificaciones/signals.py
+
+
+
 class Notificciones(SoftDeleteModel):
     fechacreacion = models.DateTimeField(auto_now_add=True)
     idnotificacion = models.BigAutoField(primary_key=True)
@@ -378,7 +382,31 @@ class Notificciones(SoftDeleteModel):
     class Meta:
         db_table = 'Notificciones'
 
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
+import json
 
+@receiver(post_save, sender=Notificciones)
+def enviar_notificacion(sender, instance, created, **kwargs):
+    if created and instance.iduser:  # Solo notifica en nuevos registros con usuario asignado
+        user_id = instance.iduser.id
+        channel_layer = get_channel_layer()
+        
+        # Envía la notificación al grupo del usuario
+        async_to_sync(channel_layer.group_send)(
+            f"user_{user_id}",
+            {
+                "type": "send_notification",
+                "message": {
+                    "titulo": instance.titulo,
+                    "descripcion": instance.descripcion,
+                    "fecha": instance.fechacreacion.strftime("%Y-%m-%d %H:%M:%S")
+                },
+            }
+        )
+        
 class Plantesis(SoftDeleteModel):
     fechacreacion = models.DateTimeField(auto_now_add=True)
     idplanformacion = models.BigAutoField(primary_key=True)

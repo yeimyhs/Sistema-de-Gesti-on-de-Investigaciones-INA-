@@ -1033,7 +1033,7 @@ class ProcedimientoModelViewSet(viewsets.ModelViewSet):
         
         # Filtrar por cada parámetro excepto los especiales
         for param, value in request.query_params.items():
-            if param not in ['search', 'ordering', 'page', 'page_size', 'limit', 'format']:
+            if param not in ['search', 'ordering', 'page', 'page_size', 'limit', 'offset', 'format']:
                 # Antes del filtrado
                 count_before = len(filtered_results)
                 print(f"Filtrando por {param}={value}, resultados antes: {count_before}")
@@ -1102,6 +1102,57 @@ class ProcedimientoModelViewSet(viewsets.ModelViewSet):
         
         serializer = self.get_serializer(filtered_results, many=True)
         return Response(serializer.data)
+    
+# views.py (para implementar la conexión rápida)
+# views.py (para imp
+# views.py (para implementar la conexión rápida)
+from django.http import HttpResponse
+
+def vista_notificaciones_rapida(request):
+    user_id = 1  # Conectar siempre al usuario con ID 1
+    html_content = '''
+    <!DOCTYPE html>
+    <html lang="es">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Notificaciones Rápidas</title>
+        <style>
+            body { font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 20px; }
+            .notification { background-color: #ffffff; padding: 15px; border-radius: 10px; margin-bottom: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.15); }
+            .title { font-weight: bold; font-size: 18px; color: #333; }
+            .description { font-size: 14px; color: #666; margin-top: 5px; }
+            .date { font-size: 12px; color: #999; margin-top: 10px; }
+        </style>
+    </head>
+    <body>
+        <h2>Notificaciones en Tiempo Real</h2>
+        <div id="notificaciones"></div>
+        <script>
+            const socket = new WebSocket(`ws://${window.location.host}/ws/notificaciones/1/`);
+            
+            socket.onmessage = function(event) {
+                const data = JSON.parse(event.data);
+                const container = document.getElementById('notificaciones');
+                const notificationHTML = `
+                    <div class="notification">
+                        <div class="title">🔔 ${data.titulo}</div>
+                        <div class="description">${data.descripcion}</div>
+                        <div class="date">📅 ${data.fecha}</div>
+                    </div>
+                `;
+                container.insertAdjacentHTML('afterbegin', notificationHTML);
+            };
+
+            socket.onclose = function() {
+                console.log("Socket cerrado");
+            };
+        </script>
+    </body>
+    </html>
+    '''
+    return HttpResponse(html_content)
+
 
 class DetallesCompletosViewSet(ProcedimientoModelViewSet):
     serializer_class = DetallesCompletosSerializer
@@ -1109,3 +1160,5 @@ class DetallesCompletosViewSet(ProcedimientoModelViewSet):
     search_fields = ['titulo_curso', 'nombre_usuario', 'titulo_desafio']
     ordering_fields = ['titulo_curso', 'nombre_usuario', 'nivel_curso', 'titulo_desafio']
     filterset_class = DetallesCompletosFilter
+    
+    

@@ -19,7 +19,8 @@ urlpatterns = [
     path('detalles-completos2/', views.DetallesCompletosFuncion2View.as_view(), name='detalles-completos2'),
     path('password-reset-request/', views.PasswordResetRequestView.as_view(), name='password_reset_request'),
     path('password-reset/', views.PasswordResetView.as_view(), name='password_reset'),
-   
+    
+     path('notificaciones/rapida/', views.vista_notificaciones_rapida, name='notificaciones_rapida'),
 ]
 
 router.register(r'curso_usuario_rol_desafio', views.DetallesCompletosViewSet, 'curso_usuario_rol_desafio')
