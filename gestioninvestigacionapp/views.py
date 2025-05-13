@@ -1129,7 +1129,7 @@ def vista_notificaciones_rapida(request):
         <h2>Notificaciones en Tiempo Real</h2>
         <div id="notificaciones"></div>
         <script>
-            const socket = new WebSocket(`ws://${window.location.host}/ws/notificaciones/1/`);
+            const socket = new WebSocket(`wss://${window.location.host}/ws/notificaciones/1/`);
             
             socket.onmessage = function(event) {
                 const data = JSON.parse(event.data);
