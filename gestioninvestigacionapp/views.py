@@ -943,70 +943,89 @@ from .models import DetallesCompletos
 from .filters import DateTimeIntervalFilter
 
 # Custom filter backend for raw procedure data
-class CustomFilterBackend:
-    def filter_queryset(self, request, queryset, view):
-        # Get filter parameters from the request
-        filterset_fields = getattr(view, 'filterset_fields', [])
-        filtered_queryset = queryset
-        
-        # Apply filters manually
-        for field in filterset_fields:
-            value = request.query_params.get(field, None)
-            if value is not None:
-                filtered_queryset = [
-                    item for item in filtered_queryset
-                    if getattr(item, field, None) == value or 
-                       (isinstance(getattr(item, field, None), str) and 
-                        value.lower() in getattr(item, field, '').lower())
-                ]
-        
-        return filtered_queryset
 
-# Custom search backend for raw procedure data
-class CustomSearchBackend:
-    def filter_queryset(self, request, queryset, view):
-        search_term = request.query_params.get('search', None)
+class CustomProcedureFilterBackend(DjangoFilterBackend):
+    """
+    Backend de filtrado personalizado para trabajar con datos de procedimiento almacenado
+    """
+    def filter_queryset(self, request, view, queryset):
+        filterset = self.get_filterset(request, view.filterset_class, queryset)
+        
+        if filterset is None:
+            return queryset
+            
+        if not filterset.is_valid() and self.raise_exception:
+            raise utils.translate_validation(filterset.errors)
+            
+        # Para datos de procedimiento, aplicamos manualmente los filtros
+        filtered_results = queryset
+        for param, value in request.query_params.items():
+            # Excluir parámetros especiales
+            if param not in ['search', 'ordering', 'page', 'page_size', 'limit', 'offset', 'format']:
+                # Filtrar los datos según el parámetro
+                filtered_results = [
+                    item for item in filtered_results
+                    if param in item and (
+                        # Búsqueda exacta o parcial (case-insensitive)
+                        str(value).lower() == str(item.get(param, '')).lower() or
+                        str(value).lower() in str(item.get(param, '')).lower()
+                    )
+                ]
+                
+        return filtered_results
+
+class CustomProcedureSearchBackend(filters.SearchFilter):
+    """
+    Backend de búsqueda personalizado para trabajar con datos de procedimiento almacenado
+    """
+    def filter_queryset(self, request, view, queryset):
+        search_term = request.query_params.get(self.search_param, '')
         if not search_term:
             return queryset
             
-        search_fields = getattr(view, 'search_fields', [])
+        search_fields = getattr(view, 'search_fields', None)
         if not search_fields:
             return queryset
             
-        # Simple search implementation
-        results = []
+        search_results = []
         for item in queryset:
             for field in search_fields:
-                field_value = getattr(item, field, '')
-                if field_value and search_term.lower() in str(field_value).lower():
-                    results.append(item)
+                if field in item and search_term.lower() in str(item.get(field, '')).lower():
+                    search_results.append(item)
                     break
                     
-        return results
-
+        return search_results
+    
 # Custom ordering backend
-class CustomOrderingBackend:
-    def filter_queryset(self, request, queryset, view):
-        ordering = request.query_params.get('ordering', None)
-        if ordering is None:
-            return queryset
-            
-        ordering_fields = getattr(view, 'ordering_fields', [])
-        if not ordering or not ordering_fields:
-            return queryset
-            
-        reverse = False
-        if ordering.startswith('-'):
-            reverse = True
-            ordering = ordering[1:]
-            
-        if ordering in ordering_fields:
-            return sorted(
-                queryset, 
-                key=lambda obj: getattr(obj, ordering, ''),
-                reverse=reverse
-            )
-            
+class CustomProcedureOrderingBackend(filters.OrderingFilter):
+    """
+    Backend de ordenamiento personalizado para trabajar con datos de procedimiento almacenado
+    """
+    def filter_queryset(self, request, view, queryset):
+        ordering = self.get_ordering(request, queryset, view)
+        if ordering:
+            # Si hay varios campos de ordenamiento, tomamos solo el primero para simplificar
+            if isinstance(ordering, (list, tuple)):
+                ordering_field = ordering[0]
+            else:
+                ordering_field = ordering
+                
+            reverse = False
+            if ordering_field.startswith('-'):
+                reverse = True
+                ordering_field = ordering_field[1:]
+                
+            # Verificar que el campo exista en ordering_fields
+            if ordering_field in getattr(view, 'ordering_fields', []):
+                try:
+                    return sorted(
+                        queryset,
+                        key=lambda x: str(x.get(ordering_field, '')).lower() if ordering_field in x else '',
+                        reverse=reverse
+                    )
+                except Exception as e:
+                    print(f"Error al ordenar: {e}")
+                    
         return queryset
 
 class ProcedimientoModelViewSet(viewsets.ModelViewSet):
@@ -1103,6 +1122,23 @@ class ProcedimientoModelViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(filtered_results, many=True)
         return Response(serializer.data)
     
+    
+
+class DetallesCompletosViewSet(ProcedimientoModelViewSet):
+    """
+    ViewSet para mostrar los detalles completos obtenidos del procedimiento almacenado
+    """
+    serializer_class = DetallesCompletosSerializer
+    filter_backends = [
+        CustomProcedureFilterBackend,
+        CustomProcedureSearchBackend,
+        CustomProcedureOrderingBackend
+    ]
+    filterset_class = DetallesCompletosFilter
+    search_fields = ['titulo_curso', 'nombre_usuario', 'apellidos_usuario', 'titulo_desafio', 'descripcion_desafio']
+    ordering_fields = ['titulo_curso', 'nombre_usuario', 'nivel_curso', 'titulo_desafio', 'anioacademico_curso']
+    
+    
 # views.py (para implementar la conexión rápida)
 # views.py (para imp
 # views.py (para implementar la conexión rápida)
@@ -1152,13 +1188,3 @@ def vista_notificaciones_rapida(request):
     </html>
     '''
     return HttpResponse(html_content)
-
-
-class DetallesCompletosViewSet(ProcedimientoModelViewSet):
-    serializer_class = DetallesCompletosSerializer
-    filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend]
-    search_fields = ['titulo_curso', 'nombre_usuario', 'titulo_desafio']
-    ordering_fields = ['titulo_curso', 'nombre_usuario', 'nivel_curso', 'titulo_desafio']
-    filterset_class = DetallesCompletosFilter
-    
-    
